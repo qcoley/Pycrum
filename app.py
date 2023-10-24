@@ -97,6 +97,20 @@ def root():
     # create the table
     db.create_all()
 
+    # insert a new record
+    new_customer = Customer(name="customer", address="address", account_number=1, premise_number=1, component_id="",
+                            component_type="", number_accounted=1, number_off=1, area="", job_set="")
+    db.session.add(new_customer)
+    db.session.commit()
+
+    # query all records
+    customers = Customer.query.all()
+    print(customers)
+
+    # query a single record by primary key
+    customer = Customer.query.get(1)
+    print(customer)
+
     return render_template('home_page.html')
 
 

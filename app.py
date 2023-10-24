@@ -97,8 +97,7 @@ def root():
     # create the table
     db.create_all()
 
-
-    return render_template('index_page.html')
+    return render_template('home_page.html')
 
 
 @app.route('/map_page')

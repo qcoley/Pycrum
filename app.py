@@ -2,15 +2,17 @@ import geopandas as gpd
 import folium
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from geoalchemy2 import Geometry
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pycrum_user:pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3@dpg-ckrvo87d47qs73f05310-a.ohio-postgres.render.com/pycrum'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pycrum_user:pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3@dpg-ckrvo87d47qs73f05310-a/pycrum'
 db = SQLAlchemy(app)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(Geometry(geometry_type='POINT'))
     name = db.Column(db.String(80), unique=True)
     address = db.Column(db.String(120), unique=True)
     account_number = db.Column(db.Integer, unique=True)
@@ -22,8 +24,10 @@ class Customer(db.Model):
     area = db.Column(db.String(80), unique=True)
     job_set = db.Column(db.String(120), unique=True)
 
-    def __init__(self, name, address, account_number, premise_number, component_id, component_type, number_accounted,
+    def __init__(self, location, name, address, account_number, premise_number, component_id, component_type, number_accounted,
                  number_off, area, job_set):
+
+        self.location = location
         self.name = name
         self.address = address
         self.account_number = account_number
@@ -94,6 +98,12 @@ def generate_records(shape_file):
 # ----------------------------------------------------------------------------------------------------------------------
 @app.route('/')
 def root():
+
+    # insert a new record
+    new_customer = Customer(location='POINT(-85.34 33.64)', name="customer", address="address", account_number=1, premise_number=1, component_id="",
+                            component_type="", number_accounted=1, number_off=1, area="area", job_set="jobset")
+    db.session.add(new_customer)
+    db.session.commit()
 
     # query all records
     customers = Customer.query.all()

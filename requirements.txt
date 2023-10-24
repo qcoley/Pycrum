@@ -3,3 +3,4 @@ Geopandas
 Folium
 Gunicorn
 Flask-sqlalchemy
+Psycopg2

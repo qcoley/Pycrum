@@ -2,3 +2,4 @@ Flask
 Geopandas
 Folium
 Gunicorn
+Flask-sqlalchemy

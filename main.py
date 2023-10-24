@@ -98,17 +98,17 @@ def root():
     db.create_all()
 
 
-    return render_template('index.html')
+    return render_template('index_page.html')
 
 
-@app.route('/mapped')
+@app.route('/map_page')
 def map_view():
-    return render_template('mapped.html', data='map.html')
+    return render_template('map_page.html', data='map.html')
 
 
-@app.route('/records')
+@app.route('/record_page')
 def record_view():
-    return render_template('records.html', data='record.html')
+    return render_template('record_page.html', data='record.html')
 
 
 @app.route('/upload', methods=['POST'])
@@ -120,18 +120,18 @@ def upload_files():
     return redirect('/')
 
 
-@app.route('/info')
+@app.route('/info_page')
 def info():
     customer = request.args.getlist('customer')
-    return render_template('info.html', data=customer)
+    return render_template('info_page.html', data=customer)
 
 
-@app.route('/edit', methods=['POST'])
+@app.route('/edit_page', methods=['POST'])
 def edit():
     new_name = request.form.get('name')
     new_address = request.form.get('address')
 
-    generate_shape_map('billing.shp', new_name, new_address)
+    # generate_shape_map('billing.shp', new_name, new_address)
 
     return render_template('mapped.html', data='map.html')
 

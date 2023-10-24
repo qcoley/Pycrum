@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Pycrum</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+    .row.content {height: 450px}
+    .border { border:solid 2px black; background-color:grey; padding: 25px; }
+    .spacing { padding: 75px; }
+    .spacing_small { padding: 25px; }
+    @media screen and (max-width: 767px) { .sidenav {height: auto; padding: 15px; }.row.content {height:auto;}}
+  </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">Pycrum</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="col-md-12">
+        <div class="spacing">
+            <div class="border">
+                <div class="spacing_small">
+                    <div class="row justify-content-center">
+                        <form class="form-inline text-center" method=POST enctype=multipart/form-data action="/upload">
+                          <div class="form-group">
+                            <input class="form-control form-control-lg" type=file name=file>
+                          </div>
+                          <input type="submit" class="btn btn-sm">
+                        </form>
+                    </div>
+                </div>
+                <div class="spacing_small">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                              <a href="/mapped" class="btn btn-primary btn-lg btn-block">Map</a>
+                        </div>
+                        <div class="col-md-6">
+                              <a href="/records" class="btn btn-primary btn-lg btn-block">Record</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

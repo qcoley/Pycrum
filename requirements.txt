@@ -4,3 +4,4 @@ Folium
 Gunicorn
 Flask-sqlalchemy
 Psycopg2
+Geoalchemy2

@@ -99,15 +99,7 @@ def generate_records(shape_file):
 @app.route('/')
 def root():
 
-    # insert a new record
-    new_customer = Customer(location='POINT(-85.34 33.64)', name="customer", address="address", account_number=1, premise_number=1, component_id="",
-                            component_type="", number_accounted=1, number_off=1, area="area", job_set="jobset")
-    db.session.add(new_customer)
-    db.session.commit()
-
-    # query all records
-    customers = Customer.query.all()
-    print(customers)
+    Customer.__table__.drop()
 
     return render_template('home_page.html')
 

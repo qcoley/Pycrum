@@ -1,6 +1,6 @@
 import geopandas as gpd
 import folium
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from geoalchemy2 import Geometry
 
@@ -48,14 +48,16 @@ def get_pos(lat, lng):
     return lat, lng
 
 
-def generate_shape_map(shape_file, edit_name, edit_address):
-    gdf = gpd.read_file("shapefiles/" + shape_file)
+def generate_shape_map(edit_name, edit_address):
+    gdf = Customer.query.all()
 
+    '''
     if edit_name is not None:
         print(edit_name)
 
     if edit_address is not None:
         print(edit_address)
+    '''
 
     geojson = gdf.to_crs(epsg='4326').to_json()
 
@@ -90,8 +92,8 @@ def generate_shape_map(shape_file, edit_name, edit_address):
     m.save("templates/map.html")
 
 
-def generate_records(shape_file):
-    gdf = gpd.read_file("shapefiles/" + shape_file)
+def generate_records():
+    gdf = Customer.query.all()
     gdf.to_html("templates/record.html")
 
 
@@ -99,6 +101,7 @@ def generate_records(shape_file):
 @app.route('/')
 def root():
 
+    '''
     db.create_all()
 
     # insert a new record
@@ -110,6 +113,7 @@ def root():
     # query all records
     customers = Customer.query.all()
     print(customers)
+    '''
 
     return render_template('home_page.html')
 
@@ -127,8 +131,8 @@ def record_view():
 @app.route('/upload', methods=['POST'])
 def upload_files():
     file = request.files.get('file')
-    generate_shape_map(file.filename, None, None)
-    generate_records(file.filename)
+    generate_shape_map(None, None)
+    generate_records()
 
     return redirect('/')
 

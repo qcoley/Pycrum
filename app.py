@@ -101,7 +101,7 @@ def root():
 
     db.create_all()
 
-    
+    '''
     # insert a new record
     new_customer = Customer(location='POINT(-85.34 33.64)', name="customer", address="address", account_number=1, premise_number=1, component_id="",
                             component_type="", number_accounted=1, number_off=1, area="", job_set="")
@@ -111,6 +111,7 @@ def root():
     # query all records
     customers = Customer.query.all()
     print(customers)
+    '''
 
     return render_template('home_page.html')
 

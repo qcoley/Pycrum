@@ -49,7 +49,7 @@ def get_pos(lat, lng):
 
 
 def generate_shape_map(edit_name, edit_address):
-    sql = text(db.session.query(Customer))
+    sql = str(db.session.query(Customer))
     gdf = gpd.GeoDataFrame.from_postgis(sql.statement, sql.session.bind)
 
     '''
@@ -94,7 +94,7 @@ def generate_shape_map(edit_name, edit_address):
 
 
 def generate_records():
-    sql = text(db.session.query(Customer))
+    sql = str(db.session.query(Customer))
     print(sql)
     gdf = gpd.GeoDataFrame.from_postgis(sql.statement, sql.session.bind)
     gdf.to_html("templates/record.html")

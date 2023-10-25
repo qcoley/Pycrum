@@ -1,5 +1,6 @@
 Flask
 Flask-sqlalchemy
+Sqlalchemy
 Geopandas
 Folium
 Gunicorn

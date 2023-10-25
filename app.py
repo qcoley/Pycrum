@@ -40,7 +40,7 @@ class Customer(db.Model):
         self.job_set = job_set
 
     def __repr__(self):
-        return '<User %r>' % self.name
+        return '<Customer %r>' % self.name
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -95,6 +95,7 @@ def generate_shape_map(edit_name, edit_address):
 
 def generate_records():
     sql = db.session.query(Customer)
+    print(sql)
     gdf = gpd.GeoDataFrame.from_postgis(sql.statement, sql.session.bind)
     gdf.to_html("templates/record.html")
 

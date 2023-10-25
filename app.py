@@ -120,11 +120,13 @@ def root():
 
 @app.route('/map_page')
 def map_view():
+    generate_shape_map(None, None)
     return render_template('map_page.html', data='map.html')
 
 
 @app.route('/record_page')
 def record_view():
+    generate_records()
     return render_template('record_page.html', data='record.html')
 
 

@@ -50,7 +50,7 @@ def get_pos(lat, lng):
 
 def generate_shape_map(edit_name, edit_address):
     sql = str(db.session.query(Customer))
-    gdf = gpd.GeoDataFrame.from_postgis(sql.statement, sql.session.bind)
+    gdf = gpd.GeoDataFrame.from_postgis(sql, db.session.bind)
 
     '''
     if edit_name is not None:
@@ -95,8 +95,7 @@ def generate_shape_map(edit_name, edit_address):
 
 def generate_records():
     sql = str(db.session.query(Customer))
-    print(sql)
-    gdf = gpd.GeoDataFrame.from_postgis(sql.statement, sql.session.bind)
+    gdf = gpd.GeoDataFrame.from_postgis(sql, db.session.bind)
     gdf.to_html("templates/record.html")
 
 

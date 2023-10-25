@@ -119,19 +119,19 @@ def root():
 
 
 @app.route('/map_page')
-def map_view():
+def map_page():
     generate_shape_map(None, None)
     return render_template('map_page.html', data='map.html')
 
 
 @app.route('/record_page')
-def record_view():
+def record_page():
     generate_records()
     return render_template('record_page.html', data='record.html')
 
 
-@app.route('/upload', methods=['POST'])
-def upload_files():
+@app.route('/upload_page', methods=['POST'])
+def upload_page():
     file = request.files.get('file')
     generate_shape_map(None, None)
     generate_records()
@@ -140,13 +140,13 @@ def upload_files():
 
 
 @app.route('/info_page')
-def info():
+def info_page():
     customer = request.args.getlist('customer')
     return render_template('info_page.html', data=customer)
 
 
 @app.route('/edit_page', methods=['POST'])
-def edit():
+def edit_page():
     new_name = request.form.get('name')
     new_address = request.form.get('address')
 

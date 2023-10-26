@@ -50,7 +50,7 @@ class Customer(db.Model):
 @app.route('/')
 def root():
 
-    locations = db.session.query(Location).all()
+    locations = db.session.query(Customer).all()
     print(locations)
 
     # db.create_all()

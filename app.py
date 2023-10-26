@@ -11,6 +11,8 @@ con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVM
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_shape_map(edit_name, edit_address):
     gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geolocation' )
+    print(gdf)
+    gdf = gdf.set_crs("EPSG:4326")
 
     if edit_name is not None:
         print(edit_name)

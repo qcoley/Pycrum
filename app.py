@@ -9,7 +9,7 @@ con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVM
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_shape_map(shape_file, edit_name, edit_address):
+def generate_shape_map(edit_name, edit_address):
     gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geom' )
 
     if edit_name is not None:
@@ -74,6 +74,7 @@ def root():
 
 @app.route('/map_page')
 def map_page():
+    generate_shape_map(None, None)
     return render_template('map_page.html', data='map.html')
 
 

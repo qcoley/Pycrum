@@ -50,7 +50,9 @@ class Customer(db.Model):
 @app.route('/')
 def root():
 
-    
+    locations = db.session.query(Location).all()
+    print(locations)
+
     # db.create_all()
 
     '''
@@ -65,7 +67,6 @@ def root():
     print(customers)
     '''
     
-
     return render_template('home_page.html')
 
 

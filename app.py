@@ -53,7 +53,7 @@ def root():
     
     # db.create_all()
 
-    
+    '''
     # insert a new record
     new_customer = Customer(geolocation='POINT(-85.34 33.64)', name="customer2", address="address2", account_number=2, premise_number=2, component_id="",
                             component_type="", number_accounted=2, number_off=2, area="", job_set="")
@@ -63,6 +63,7 @@ def root():
     # query all records
     customers = Customer.query.all()
     print(customers)
+    '''
     
 
     return render_template('home_page.html')

@@ -109,6 +109,7 @@ def edit_page():
 def get_locations():
     # Query the database
     locations = db.session.query(Location).all()
+    print(locations)
     # Convert the results to a list of dictionaries
     data = []
     for location in locations:

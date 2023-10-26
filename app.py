@@ -10,7 +10,7 @@ con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVM
 
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_shape_map(edit_name, edit_address):
-    gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geom' )
+    gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geolocation' )
 
     if edit_name is not None:
         print(edit_name)

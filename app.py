@@ -21,16 +21,14 @@ def generate_shape_map(edit_name, edit_address):
 
     geojson = gdf.to_crs(epsg='4326').to_json()
 
-    print(gdf.iloc[0])
-
     m = folium.Map(location=[gdf.iloc[0].geolocation.centroid.y, gdf.iloc[0].geolocation.centroid.x], zoom_start=10)
 
     # Create a folium choropleth object and specify the geo_data, data, columns, key_on, and other arguments
-    folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf, columns=['Customer_N', 'Service_Ad'],
+    folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf, columns=['name', 'address'],
                       fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, legend_name='Customers').add_to(m)
 
     # Create a folium geojson object from the same geo_data as the choropleth object
-    geo = folium.GeoJson(data=gdf, popup=folium.GeoJsonPopup(fields=['Customer_N', 'Service_Ad', "Link"], labels=True))
+    geo = folium.GeoJson(data=gdf, popup=folium.GeoJsonPopup(fields=['name', 'address', "link"], labels=True))
 
     # Add the geojson object to the map using the add_to method
     geo.add_to(m)
@@ -39,15 +37,15 @@ def generate_shape_map(edit_name, edit_address):
     index = 0
     for feature in geo.data["features"]:
         customer_list = [index,
-                         feature["properties"]["Customer_N"],
-                         feature["properties"]["Service_Ad"],
-                         feature["properties"]["Account_Nu"],
-                         feature["properties"]["Premise_Nu"]]
+                         feature["properties"]["name"],
+                         feature["properties"]["address"],
+                         feature["properties"]["account_number"],
+                         feature["properties"]["premise_number"]]
         # Get the country name
         # Generate a reference link using Wikipedia
         link = f"<a href='{url_for('info', customer=customer_list)}'>Update Record</a>"
         # Add the link as a new property
-        feature["properties"]["Link"] = link
+        feature["properties"]["link"] = link
         index += 1
 
     # Save or display the map

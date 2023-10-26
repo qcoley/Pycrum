@@ -23,7 +23,7 @@ def generate_shape_map(edit_name, edit_address):
 
     print(gdf.iloc[0])
 
-    m = folium.Map(location=[gdf.iloc[0].geometry.centroid.y, gdf.iloc[0].geometry.centroid.x], zoom_start=10)
+    m = folium.Map(location=[gdf.iloc[0].geolocation.centroid.y, gdf.iloc[0].geolocation.centroid.x], zoom_start=10)
 
     # Create a folium choropleth object and specify the geo_data, data, columns, key_on, and other arguments
     folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf, columns=['Customer_N', 'Service_Ad'],

@@ -43,7 +43,7 @@ def generate_shape_map(edit_name, edit_address):
                          feature["properties"]["premise_number"]]
         # Get the country name
         # Generate a reference link using Wikipedia
-        link = f"<a href='{url_for('info', customer=customer_list)}'>Update Record</a>"
+        link = f"<a href='{url_for('info_page', customer=customer_list)}'>Update Record</a>"
         # Add the link as a new property
         feature["properties"]["link"] = link
         index += 1

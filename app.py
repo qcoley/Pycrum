@@ -11,7 +11,6 @@ con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVM
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_shape_map(edit_name, edit_address):
     gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geolocation' )
-    print(gdf)
     gdf = gdf.set_crs("EPSG:4326")
 
     if edit_name is not None:
@@ -21,6 +20,8 @@ def generate_shape_map(edit_name, edit_address):
         print(edit_address)
 
     geojson = gdf.to_crs(epsg='4326').to_json()
+
+    print(gdf.iloc[0])
 
     m = folium.Map(location=[gdf.iloc[0].geometry.centroid.y, gdf.iloc[0].geometry.centroid.x], zoom_start=10)
 

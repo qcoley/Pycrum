@@ -50,9 +50,6 @@ class Customer(db.Model):
 @app.route('/')
 def root():
 
-    locations = db.session.query(Customer).all()
-    print(locations)
-
     # db.create_all()
 
     '''
@@ -109,8 +106,7 @@ def edit_page():
 @app.route('/api/locations')
 def get_locations():
     # Query the database
-    locations = db.session.query(Location).all()
-    print(locations)
+    locations = db.session.query(Customer).all()
     # Convert the results to a list of dictionaries
     data = []
     for location in locations:

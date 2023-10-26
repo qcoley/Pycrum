@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/folium/0.12.1/folium.js"></script>
   <style>
     .row.content {height: 450px}
     .border { border:solid 2px black; background-color:grey; padding: 25px; }
@@ -25,7 +26,33 @@
       </div>
     </nav>
 
-    {% include data %}
+    <h1>Flask-Folium Example</h1>
+    <div id="map" style="width: 800px; height: 600px;"></div>
+    <script>
+    // Create a map object
+    var map = L.map('map').setView([0, 0], 2);
 
+    // Add a tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Fetch the JSON data from the Flask route
+    var request = new XMLHttpRequest();
+    request.open('GET', '/api/locations', true);
+    request.onload = function() {
+      if (this.status >= 200 && this.status < 400) {
+        // Convert the JSON data to a Python dictionary
+        var data = JSON.parse(this.response);
+        // Loop through the dictionary and add markers to the map
+        for (var i = 0; i < data.length; i++) {
+          var location = data[i];
+          var marker = L.marker([location.latitude, location.longitude]).addTo(map);
+          marker.bindPopup(location.name);
+        
+        } } };
+    request.send();
+  </script>
 </body>
+
 </html>

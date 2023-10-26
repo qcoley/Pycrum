@@ -9,41 +9,6 @@ con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVM
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-class Customer(db.Model):
-    __tablename__ = 'customers'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    geolocation = db.Column(Geometry('POINT'))
-    name = db.Column(db.String(80), unique=True)
-    address = db.Column(db.String(120), unique=True)
-    account_number = db.Column(db.Integer, unique=True)
-    premise_number = db.Column(db.Integer, unique=True)
-    component_id = db.Column(db.String(80), unique=True)
-    component_type = db.Column(db.String(120), unique=True)
-    number_accounted = db.Column(db.Integer, unique=True)
-    number_off = db.Column(db.Integer, unique=True)
-    area = db.Column(db.String(80), unique=True)
-    job_set = db.Column(db.String(120), unique=True)
-
-    def __init__(self, geolocation, name, address, account_number, premise_number, component_id, component_type, number_accounted,
-                 number_off, area, job_set):
-
-        self.geolocation = geolocation
-        self.name = name
-        self.address = address
-        self.account_number = account_number
-        self.premise_number = premise_number
-        self.component_id = component_id
-        self.component_type = component_type
-        self.number_accounted = number_accounted
-        self.number_off = number_off
-        self.area = area
-        self.job_set = job_set
-
-    def __repr__(self):
-        return f'<Customer {self.name}>'
-
-
 def generate_shape_map(shape_file, edit_name, edit_address):
     gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geom' )
 

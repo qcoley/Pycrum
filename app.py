@@ -1,27 +1,61 @@
 import geopandas as gpd
 import folium
-import psycopg2
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 from geoalchemy2 import Geometry
+from sqlalchemy import text
 
 app = Flask(__name__)
-con = psycopg2.connect(database="pycrum", user="pycrum_user", password="pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3", host="dpg-ckrvo87d47qs73f05310-a.ohio-postgres.render.com")
+app.config['SQLALCHEMY_DATABASE_URI'] = ('postgresql+psycopg2://'
+                                         'pycrum_user:'
+                                         'pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3@'
+                                         'dpg-ckrvo87d47qs73f05310-a.ohio-postgres.render.com/'
+                                         'pycrum')
+db = SQLAlchemy(app)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_shape_map(edit_name, edit_address):
-    gdf = gpd.GeoDataFrame.from_postgis("select * from customers", con, geom_col='geolocation' )
+class Customer(db.Model):
+    __tablename__ = 'customers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    geolocation = db.Column(Geometry('POINT'))
+    name = db.Column(db.String(80))
+    address = db.Column(db.String(120))
+    account_number = db.Column(db.Integer)
+    premise_number = db.Column(db.Integer)
+    component_id = db.Column(db.String(80))
+    component_type = db.Column(db.String(120))
+    number_accounted = db.Column(db.Integer)
+    number_off = db.Column(db.Integer)
+    area = db.Column(db.String(80))
+    job_set = db.Column(db.String(120))
+
+    def __init__(self, geolocation, name, address, account_number, premise_number, component_id, component_type,
+                 number_accounted, number_off, area, job_set):
+        self.geolocation = geolocation
+        self.name = name
+        self.address = address
+        self.account_number = account_number
+        self.premise_number = premise_number
+        self.component_id = component_id
+        self.component_type = component_type
+        self.number_accounted = number_accounted
+        self.number_off = number_off
+        self.area = area
+        self.job_set = job_set
+
+    def __repr__(self):
+        return f'<Customer {self.name}>'
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def generate_shape_map():
+    gdf = gpd.GeoDataFrame.from_postgis("select * from customers", db.engine, geom_col='geolocation')
     gdf = gdf.set_crs("EPSG:4326")
-
-    if edit_name is not None:
-        print(edit_name)
-
-    if edit_address is not None:
-        print(edit_address)
-
     geojson = gdf.to_crs(epsg='4326').to_json()
 
-    m = folium.Map(location=[gdf.iloc[0].geolocation.centroid.y, gdf.iloc[0].geolocation.centroid.x], zoom_start=10)
+    m = folium.Map(location=[gdf.iloc[0].geolocation.centroid.y, gdf.iloc[0].geolocation.centroid.x], zoom_start=8)
 
     # Create a folium choropleth object and specify the geo_data, data, columns, key_on, and other arguments
     folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf, columns=['name', 'address'],
@@ -55,40 +89,32 @@ def generate_shape_map(edit_name, edit_address):
 # ----------------------------------------------------------------------------------------------------------------------
 @app.route('/')
 def root():
-
-    # db.create_all()
-
-    '''
-    # insert a new record
-    new_customer = Customer(geolocation='POINT(-85.34 33.64)', name="customer2", address="address2", account_number=2, premise_number=2, component_id="",
-                            component_type="", number_accounted=2, number_off=2, area="", job_set="")
-    db.session.add(new_customer)
-    db.session.commit()
-
-    # query all records
-    customers = Customer.query.all()
-    print(customers)
-    '''
-    
     return render_template('home_page.html')
 
 
 @app.route('/map_page')
 def map_page():
-    generate_shape_map(None, None)
-    return render_template('map_page.html', data='map.html')
+    return render_template('map_page.html')
+
+
+# creates the map to be rendered into an iFrame on the map page
+@app.route('/map_view')
+def map_view():
+    generate_shape_map()
+    return render_template('map.html')
 
 
 @app.route('/record_page')
 def record_page():
-    return render_template('record_page.html')
+    data = db.session.execute(text("SELECT * FROM customers"))
+    return render_template('record_page.html', data=data)
 
 
 @app.route('/upload_page', methods=['POST'])
 def upload_page():
-    file = request.files.get('file')
-    generate_shape_map(None, None)
-    generate_records()
+    # file = request.files.get('file')
+    generate_shape_map()
+    # generate_records()
 
     return redirect('/')
 
@@ -107,4 +133,34 @@ def edit_page():
     # generate_shape_map('billing.shp', new_name, new_address)
 
     return render_template('mapped.html', data='map.html')
-    
+
+
+@app.route('/add_record', methods=['POST'])
+def add_record():
+    return render_template('add_record.html')
+
+
+@app.route('/add_customer', methods=['POST'])
+def add_customer():
+
+    name = request.form.get("Name")
+    address = request.form.get('Address')
+    account = request.form.get('Account')
+    premise = request.form.get('Premise')
+    component_id = request.form.get('Component_ID')
+    component_type = request.form.get('Component_Type')
+    number_accounted = request.form.get('Number_Accounted')
+    number_off = request.form.get('Number_Off')
+    area = request.form.get('Area')
+    job_set = request.form.get('Job_Set')
+    latitude = request.form.get('Latitude')
+    longitude = request.form.get('Longitude')
+
+    new_customer = Customer(geolocation='POINT('+str(latitude)+' '+str(longitude)+')', name=name, address=address,
+                            account_number=account, premise_number=premise, component_id=component_id,
+                            component_type=component_type, number_accounted=number_accounted, number_off=number_off,
+                            area=area, job_set=job_set)
+    db.session.add(new_customer)
+    db.session.commit()
+
+    return render_template('add_record.html')

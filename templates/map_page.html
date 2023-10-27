@@ -1,31 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <title>Pycrum</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  <style>
-    .row.content {height: 450px}
-    .border { border:solid 2px black; background-color:grey; padding: 25px; }
-    .spacing { padding: 75px; }
-    .spacing_small { padding: 25px; }
-    @media screen and (max-width: 767px) { .sidenav {height: auto; padding: 15px; }.row.content {height:auto;}}
-  </style>
-</head>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous">
+        <style>
+            .border { border:solid 2px black; background-color:grey; padding: 25px; }
+            .spacing { padding: 150px; }
+            .spacing_small { padding: 25px; }
+            .map_container { position: relative; overflow: hidden; width: 100%; height: 94vh; }
+            .responsive-iframe { position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; }
+        </style>
+        <title>Pycrum</title>
+    </head>
 
-<body>
-    <nav class="navbar navbar-inverse">
-      <div class="container-fluid">
-        <div class="nav navbar-nav navbar-right">
-          <a class="navbar-brand" href="/">Pycrum</a>
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="/">Pycrum</a>
+        </nav>
+        <div class="map_container">
+            <iframe class="responsive-iframe" src={{url_for('map_view')}}></iframe>
         </div>
-      </div>
-    </nav>
-
-    {% include data %}
-
-</body>
+    </body>
 </html>

@@ -9,6 +9,7 @@
               crossorigin="anonymous">
         <style>
             .border { border:solid 2px black; background-color:grey; padding: 25px; }
+            .margin { margin-top: 100 px; }
             .spacing { padding: 100px; }
             .spacing_small { padding: 50px; }
             form label, h5 { color: #fff; }
@@ -21,10 +22,10 @@
             <a class="navbar-brand" href="/">Pycrum</a>
         </nav>
         <div class="col-md-12">
-            <div class="spacing">
+            <div class="margin">
                 <div class="border">
-                    <h5> Enter Customer Information </h5>
                     <div class="spacing_small">
+                    <h5> Enter Customer Information </h5>
                         <form action="{{url_for('add_customer')}}" method="post">
                             <div class="form-group">
                             <label for="Name">Name</label>

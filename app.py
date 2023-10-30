@@ -164,3 +164,7 @@ def add_customer():
     db.session.commit()
 
     return render_template('add_record.html')
+
+
+if __name__ == "__main__":
+    app.run()

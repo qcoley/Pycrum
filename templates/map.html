@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_ddfa25e5fd7d2642fa85d1b148115929 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_ddfa25e5fd7d2642fa85d1b148115929" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_ddfa25e5fd7d2642fa85d1b148115929 = L.map(
+                "map_ddfa25e5fd7d2642fa85d1b148115929",
+                {
+                    center: [33.64, -85.34],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 8,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_ff583a6fcb5410a8a339bca01abf0513 = L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "Data by \u0026copy; \u003ca target=\"_blank\" href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\"_blank\" href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            ).addTo(map_ddfa25e5fd7d2642fa85d1b148115929);
+        
+    
+            var choropleth_8db00844b6cd44b6186d1bd09e09196e = L.featureGroup(
+                {}
+            ).addTo(map_ddfa25e5fd7d2642fa85d1b148115929);
+        
+    
+        function geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_styler(feature) {
+            switch(feature.id) {
+                default:
+                    return {"color": "black", "fillColor": "YlGn", "fillOpacity": 0.7, "opacity": 0.2, "weight": 1};
+            }
+        }
+
+        function geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_onEachFeature(feature, layer) {
+            layer.on({
+            });
+        };
+        var geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba = L.geoJson(null, {
+                onEachFeature: geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_onEachFeature,
+            
+                style: geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_styler,
+        });
+
+        function geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_add (data) {
+            geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba
+                .addData(data)
+                .addTo(choropleth_8db00844b6cd44b6186d1bd09e09196e);
+        }
+            geo_json_f4b207224ac1ec3e73fe6ea521c3c7ba_add({"features": [{"geometry": {"coordinates": [-85.34, 33.64], "type": "Point"}, "id": "0", "properties": {"account_number": 1, "address": "address", "area": "", "component_id": "", "component_type": "", "id": 1, "job_set": "", "name": "customer", "number_accounted": 1, "number_off": 1, "premise_number": 1}, "type": "Feature"}, {"geometry": {"coordinates": [-80.0, 30.0], "type": "Point"}, "id": "1", "properties": {"account_number": 12345, "address": "an address", "area": "area 1", "component_id": "componentid", "component_type": "componenttype", "id": 7, "job_set": "jobset 1", "name": "a name", "number_accounted": 2, "number_off": 0, "premise_number": 12345}, "type": "Feature"}, {"geometry": {"coordinates": [31.0, -82.0], "type": "Point"}, "id": "2", "properties": {"account_number": 1245678, "address": "another address", "area": "area 2", "component_id": "component id", "component_type": "typer", "id": 10, "job_set": "job set 2", "name": "another name", "number_accounted": 4, "number_off": 3, "premise_number": 1234567}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+
+        function geo_json_3f7537d72f5941be9ff24e00461d2e84_onEachFeature(feature, layer) {
+            layer.on({
+            });
+        };
+        var geo_json_3f7537d72f5941be9ff24e00461d2e84 = L.geoJson(null, {
+                onEachFeature: geo_json_3f7537d72f5941be9ff24e00461d2e84_onEachFeature,
+            
+        });
+
+        function geo_json_3f7537d72f5941be9ff24e00461d2e84_add (data) {
+            geo_json_3f7537d72f5941be9ff24e00461d2e84
+                .addData(data)
+                .addTo(map_ddfa25e5fd7d2642fa85d1b148115929);
+        }
+            geo_json_3f7537d72f5941be9ff24e00461d2e84_add({"bbox": [-85.34, -82.0, 31.0, 33.64], "features": [{"bbox": [-85.34, 33.64, -85.34, 33.64], "geometry": {"coordinates": [-85.34, 33.64], "type": "Point"}, "id": "0", "properties": {"account_number": 1, "address": "address", "area": "", "component_id": "", "component_type": "", "id": 1, "job_set": "", "link": "\u003ca href=\u0027/info_page?customer=0\u0026customer=customer\u0026customer=address\u0026customer=1\u0026customer=1\u0027\u003eUpdate Record\u003c/a\u003e", "name": "customer", "number_accounted": 1, "number_off": 1, "premise_number": 1}, "type": "Feature"}, {"bbox": [-80.0, 30.0, -80.0, 30.0], "geometry": {"coordinates": [-80.0, 30.0], "type": "Point"}, "id": "1", "properties": {"account_number": 12345, "address": "an address", "area": "area 1", "component_id": "componentid", "component_type": "componenttype", "id": 7, "job_set": "jobset 1", "link": "\u003ca href=\u0027/info_page?customer=1\u0026customer=a+name\u0026customer=an+address\u0026customer=12345\u0026customer=12345\u0027\u003eUpdate Record\u003c/a\u003e", "name": "a name", "number_accounted": 2, "number_off": 0, "premise_number": 12345}, "type": "Feature"}, {"bbox": [31.0, -82.0, 31.0, -82.0], "geometry": {"coordinates": [31.0, -82.0], "type": "Point"}, "id": "2", "properties": {"account_number": 1245678, "address": "another address", "area": "area 2", "component_id": "component id", "component_type": "typer", "id": 10, "job_set": "job set 2", "link": "\u003ca href=\u0027/info_page?customer=2\u0026customer=another+name\u0026customer=another+address\u0026customer=1245678\u0026customer=1234567\u0027\u003eUpdate Record\u003c/a\u003e", "name": "another name", "number_accounted": 4, "number_off": 3, "premise_number": 1234567}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_3f7537d72f5941be9ff24e00461d2e84.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["name", "address", "link"];
+    let aliases = ["name", "address", "link"];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <th>${aliases[i].toLocaleString()}</th>
+            
+            <td>${handleObject(layer.feature.properties[v]).toLocaleString()}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{"className": "foliumpopup"});
+                     
+</script>
+</html>

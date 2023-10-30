@@ -8,9 +8,8 @@
               integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
               crossorigin="anonymous">
         <style>
-            .border { border:solid 2px black; background-color:grey; padding: 25px; }
-            .spacing { padding: 100px; }
-            .spacing_small { padding: 25px; }
+            .parent { display: flex; align-items: center; height: 75vh; }
+            .child { width: 500px; margin: 0 auto; }
         </style>
         <title>Pycrum</title>
     </head>
@@ -19,31 +18,23 @@
         <nav class="navbar navbar-dark bg-dark">
             <a class="navbar-brand" href="/">Pycrum</a>
         </nav>
-        <div class="col-md-12">
-            <div class="spacing">
-                <div class="border">
-                    <div class="spacing_small">
-                        <div class="row justify-content-center">
-                            <form class="form-inline text-center" method=POST
-                                enctype=multipart/form-data action="/upload">
-                                <div class="input-group">
-                                    <input type="file" class="form-control" id="inputGroupFile04"
-                                         aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                                    <button class="btn btn-secondary" type="button"
-                                          id="shapefile">Upload Shapefile</button>
-                                </div>
-                            </form>
+
+        <div class="parent">
+            <div class="child">
+                <div style="border:solid 2px black; background-color:dimgrey; padding: 25px;">
+                    <form class="form-inline" method=POST
+                        enctype=multipart/form-data action="/upload">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="inputGroupFile04" name="shapefile"
+                                 aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                            <button class="btn btn-secondary" type="button"
+                                  id="shapefile">Upload Shapefile</button>
                         </div>
-                    </div>
-                    <div class="spacing_small">
-                        <div class="row justify-content-center">
-                            <div class="col-md-5">
-                                  <a href="/map_page" class="btn btn-primary btn-lg btn-block">Map</a>
-                            </div>
-                            <div class="col-md-5">
-                                  <a href="/record_page" class="btn btn-primary btn-lg btn-block">Records</a>
-                            </div>
-                        </div>
+                    </form>
+
+                    <div style="margin-top:50px">
+                        <a href="/map_page" class="btn btn-primary btn-lg btn-block">Map</a>
+                        <a href="/record_page" class="btn btn-primary btn-lg btn-block">Records</a>
                     </div>
                 </div>
             </div>

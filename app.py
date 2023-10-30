@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = ('postgresql+psycopg2://'
                                          'pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3@'
                                          'dpg-ckrvo87d47qs73f05310-a.ohio-postgres.render.com/'
                                          'pycrum')
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 db = SQLAlchemy(app)
 
 
@@ -159,10 +160,11 @@ def add_customer():
     db.session.add(new_customer)
     db.session.commit()
 
-    return render_template('add_record.html')
+    data = db.session.execute(text("SELECT * FROM customers"))
+    return render_template('record_page.html', data=data)
 
 
-# route that handles adding the customer by getting form data and inserting into database
+# route that handles updating the customer information in map view
 @app.route('/update_customer', methods=['POST'])
 def update_customer():
 
@@ -172,9 +174,116 @@ def update_customer():
     u_account = request.form.get('update_account')
     u_premise = request.form.get('update_premise')
 
-    print(u_id, u_name, u_address, u_account, u_premise)
+    updated_customer = db.session.query(Customer).filter(Customer.id == u_id).first()
 
-    generate_shape_map()
-    return render_template('map.html')
+    if updated_customer:
+        if u_name != "":
+            updated_customer.name = u_name
+        if u_address != "":
+            updated_customer.address = u_address
+        if u_account != "":
+            updated_customer.account_number = int(u_account)
+        if u_premise != "":
+            updated_customer.premise_number = int(u_premise)
+
+        db.session.commit()
+        generate_shape_map()
+
+        return render_template('map.html')
+
+    else:
+        return render_template('map.html')
 
 
+# route that shows the edit customer page from the records page
+@app.route('/edit_customer_page', methods=['POST'])
+def edit_customer_page():
+
+    e_id = request.form.get("edit_id")
+    e_location = request.form.get("edit_location")
+    e_name = request.form.get("edit_name")
+    e_address = request.form.get('edit_address')
+    e_account = request.form.get('edit_account')
+    e_premise = request.form.get('edit_premise')
+    e_comp_id = request.form.get('edit_comp_id')
+    e_comp_type = request.form.get('edit_comp_type')
+    e_num_acc = request.form.get('edit_num_acc')
+    e_num_off = request.form.get('edit_num_off')
+    e_area = request.form.get('edit_area')
+    e_job_set = request.form.get('edit_job_set')
+    editing_customer = [e_id, e_location, e_name, e_address, e_account, e_premise, e_comp_id, e_comp_type, e_num_acc,
+                        e_num_off, e_area, e_job_set]
+
+    return render_template('edit_record.html', data=editing_customer)
+
+
+# route that handles editing customer data by getting the info from the edit page
+@app.route('/edit_customer', methods=['POST'])
+def edit_customer():
+
+    new_e_id = request.form.get("new_edit_id")
+    new_e_latitude = request.form.get("new_edit_latitude")
+    new_e_longitude = request.form.get("new_edit_longitude")
+    new_e_name = request.form.get("new_edit_name")
+    new_e_address = request.form.get('new_edit_address')
+    new_e_account = request.form.get('new_edit_account')
+    new_e_premise = request.form.get('new_edit_premise')
+    new_e_comp_id = request.form.get('new_edit_comp_id')
+    new_e_comp_type = request.form.get('new_edit_comp_type')
+    new_e_num_acc = request.form.get('new_edit_num_acc')
+    new_e_num_off = request.form.get('new_edit_num_off')
+    new_e_area = request.form.get('new_edit_area')
+    new_e_job_set = request.form.get('new_edit_job_set')
+
+    edited_customer = db.session.query(Customer).filter(Customer.id == new_e_id).first()
+
+    if edited_customer:
+        if new_e_latitude != "" and new_e_longitude != "":
+            edited_customer.geolocation = 'POINT(' + str(new_e_latitude) + ' ' + str(new_e_longitude) + ')'
+        if new_e_name != "":
+            edited_customer.name = new_e_name
+        if new_e_address != "":
+            edited_customer.address = new_e_address
+        if new_e_account != "":
+            edited_customer.account_number = int(new_e_account)
+        if new_e_premise != "":
+            edited_customer.premise_number = int(new_e_premise)
+        if new_e_comp_id != "":
+            edited_customer.component_id = new_e_comp_id
+        if new_e_comp_type != "":
+            edited_customer.component_type = new_e_comp_type
+        if new_e_num_acc != "":
+            edited_customer.number_accounted = new_e_num_acc
+        if new_e_num_off != "":
+            edited_customer.number_off = new_e_num_off
+        if new_e_area != "":
+            edited_customer.area = new_e_area
+        if new_e_job_set != "":
+            edited_customer.job_set = new_e_job_set
+
+        db.session.commit()
+        data = db.session.execute(text("SELECT * FROM customers"))
+        return render_template('record_page.html', data=data)
+
+    else:
+        data = db.session.execute(text("SELECT * FROM customers"))
+        return render_template('record_page.html', data=data)
+
+
+# route that handles deleting customer by getting id from record page form
+@app.route('/delete_customer', methods=['POST'])
+def delete_customer():
+
+    delete_id = request.form.get("delete_id")
+
+    deleting_customer = db.session.query(Customer).filter(Customer.id == delete_id).first()
+
+    if deleting_customer:
+        db.session.delete(deleting_customer)
+        db.session.commit()
+        data = db.session.execute(text("SELECT * FROM customers"))
+        return render_template('record_page.html', data=data)
+
+    else:
+        data = db.session.execute(text("SELECT * FROM customers"))
+        return render_template('record_page.html', data=data)

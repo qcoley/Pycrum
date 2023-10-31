@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous">
+        <style>
+            .parent { display: flex; align-items: center; }
+            .child { width: 500px; margin: 0 auto; }
+            form label, h5, h7 { color: #fff; }
+        </style>
+        <title>Pycrum</title>
+    </head>
+
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="{{url_for('root')}}">Pycrum</a>
+        </nav>
+        <div class="parent">
+            <div class="child">
+                <div style="background-color:dimgrey; padding: 50px;">
+                    <div class="row">
+                        <h5> Confirm Record Delete </h5>
+                    </div>
+                    <div class="row" style="margin-top:25px">
+                        <h7> {{ data[1] }} </h7>
+                    </div>
+                    <div class="row" style="margin-top:25px">
+                        <h7> {{ data[2] }} </h7>
+                    </div>
+                    <div class="row" style="margin-top:25px">
+                        <h7> {{ data[3] }} </h7>
+                    </div>
+                    <div class="row" style="margin-top:25px">
+                        <h7> {{ data[4] }} </h7>
+                    </div>
+                    <form action="{{url_for('delete_record')}}" method="post">
+                        <input type="hidden" name="delete_confirm_id" value="{{ data[0] }}">
+                        <div class="row" style="margin-top:50px">
+                        <button type="submit" class="btn btn-danger btn-block">Delete Record</button>
+                        </div>
+                        <div class="row" style="margin-top:25px">
+                            <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

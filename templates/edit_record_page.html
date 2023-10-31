@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous">
+        <style>
+            .parent { display: flex; align-items: center; }
+            .child { width: 500px; margin: 0 auto; }
+            form label, h5 { color: #fff; }
+        </style>
+        <title>Pycrum</title>
+    </head>
+
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="{{url_for('root')}}">Pycrum</a>
+        </nav>
+        <div class="parent">
+            <div class="child">
+                <div style="background-color:dimgrey; padding: 50px;">
+                    <h5> Edit Record Information </h5>
+                    <form action="{{url_for('edit_record')}}" method="post" style="margin-top:25px">
+                        <input type="hidden" name="new_edit_id" value="{{ data[0] }}">
+                        <div class="form-group">
+                        <label for="Name">{{ data[2] }}</label>
+                        <input type="text" class="form-control" id="Name" name="new_edit_name"
+                               placeholder="Enter name">
+                        </div>
+                        <div class="form-group">
+                        <label for="Address">{{ data[3] }}</label>
+                        <input type="text" class="form-control" id="Address" name="new_edit_address"
+                               placeholder="Enter address">
+                        </div>
+                        <div class="form-group">
+                        <label for="Account">{{ data[4] }}</label>
+                        <input type="number" class="form-control" id="Account" name="new_edit_account"
+                               placeholder="Enter account">
+                        </div>
+                        <div class="form-group">
+                        <label for="Premise">{{ data[5] }}</label>
+                        <input type="number" class="form-control" id="Premise" name="new_edit_premise"
+                               placeholder="Enter premise">
+                        </div>
+                        <div class="form-group">
+                        <label for="Component_ID">{{ data[6] }}</label>
+                        <input type="Text" class="form-control" id="Component_ID" name="new_edit_comp_id"
+                               placeholder="Enter component ID">
+                        </div>
+                        <div class="form-group">
+                        <label for="Component_Type">{{ data[7] }}</label>
+                        <input type="Text" class="form-control" id="Component_Type" name="new_edit_comp_type"
+                               placeholder="Enter component type">
+                        </div>
+                        <div class="form-group">
+                        <label for="Number_Accounted">{{ data[8] }}</label>
+                        <input type="Number" class="form-control" id="Number_Accounted" name="new_edit_num_acc"
+                               placeholder="Enter lights">
+                        </div>
+                        <div class="form-group">
+                        <label for="Number_Off">{{ data[9] }}</label>
+                        <input type="Number" class="form-control" id="Number_Off" name="new_edit_num_off"
+                               placeholder="Enter lights off">
+                        </div>
+                        <div class="form-group">
+                        <label for="Area">{{ data[10] }}</label>
+                        <input type="Text" class="form-control" id="Area" name="new_edit_area" placeholder="Enter area">
+                        </div>
+                        <div class="form-group">
+                        <label for="Job_Set">{{ data[11] }}</label>
+                        <input type="Text" class="form-control" id="Job_Set" name="new_edit_job_set"
+                               placeholder="Enter job set">
+                        </div>
+                        <div class="form-group">
+                        <label for="Latitude">{{ data[1] }}</label>
+                        <input type="Number" step="0.01" class="form-control" id="Latitude" name="new_edit_latitude"
+                               placeholder="Enter latitude">
+                        </div>
+                        <div class="form-group">
+                        <label for="Longitude">{{ data[1] }}</label>
+                        <input type="Number" step="0.01" class="form-control" id="Longitude" name="new_edit_longitude"
+                               placeholder="Enter longitude">
+                        </div>
+                        <div class="row" style="margin-top:50px">
+                        <button type="submit" class="btn btn-warning btn-block">Edit Record</button>
+                        </div>
+                        <div class="row" style="margin-top:25px">
+                            <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

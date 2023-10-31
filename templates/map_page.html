@@ -15,7 +15,12 @@
 
     <body>
         <nav class="navbar navbar-dark bg-dark">
-            <a class="navbar-brand" href="/">Pycrum</a>
+            <a class="navbar-brand" href="{{url_for('root')}}">Pycrum</a>
+            <div class="row" style="margin-right:10px">
+                <form class="form-inline" method=GET action={{url_for('record_page')}} style="margin-right:10px">
+                    <button class="btn btn-outline-light" type="submit">Records</button>
+                </form>
+            </div>
         </nav>
         <div class="container-fluid" style="padding-right: 0; padding-left: 0; position: absolute;
                                             top: 55px; bottom: 0; left: 0; right: 0;">

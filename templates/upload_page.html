@@ -7,24 +7,26 @@
               href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
               integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
               crossorigin="anonymous">
-        <style>
-            .responsive-iframe { position: relative; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; }
-        </style>
         <title>Pycrum</title>
     </head>
 
     <body>
         <nav class="navbar navbar-dark bg-dark">
             <a class="navbar-brand" href="{{url_for('root')}}">Pycrum</a>
-            <div class="row" style="margin-right:10px">
-                <form class="form-inline" method=GET action={{url_for('record_page')}}>
-                    <button class="btn btn-outline-light" type="submit">Records</button>
-                </form>
-            </div>
         </nav>
-        <div class="container-fluid" style="padding-right: 0; padding-left: 0; position: absolute;
-                                            top: 55px; bottom: 0; left: 0; right: 0;">
-            <iframe class="responsive-iframe" src={{url_for('map_view')}}></iframe>
+        <div class="row justify-content-center" style="margin-top:25px; margin-bottom:10px">
+            <h5> Preview Shape File Contents </h5>
+        </div>
+        <div class="container">
+            {{ data|safe }}
+        </div>
+        <div class="row justify-content-center" style="margin-top:25px; margin-bottom:25px">
+            <form class="form-inline" method=GET action={{url_for('root')}} style="margin-right:25px">
+                <button class="btn btn-danger btn-block" type="submit">Cancel</button>
+            </form>
+            <form class="form-inline" method=POST action={{url_for('upload_page')}}>
+                <button class="btn btn-success btn-block" type="submit">Save to database</button>
+            </form>
         </div>
     </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

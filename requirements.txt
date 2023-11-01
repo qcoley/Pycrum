@@ -6,3 +6,5 @@ Folium
 Gunicorn
 Psycopg2
 Geoalchemy2
+werkzeug
+shapely

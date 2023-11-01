@@ -1,15 +1,17 @@
 import geopandas as gpd
 import folium
 import os
-from flask import Flask, render_template, request, url_for
+import secrets
+from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from geoalchemy2 import Geometry
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
+from shapely import wkb
 
-os.makedirs('uploads', exist_ok=True)
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = ('postgresql+psycopg2://'
                                          'pycrum_user:'
                                          'pOCwAVVMw3YDbjPfMKkHSyZpK9JGicR3@'
@@ -98,17 +100,116 @@ def generate_shape_map():
 def root():
     # for when database needs to be created from Models
     # db.create_all()
+
+    # to clear any previously uploaded files
+    for remove_file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
+        file_path = os.path.join(os.path.join(app.config["UPLOAD_FOLDER"]), remove_file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
     return render_template('home_page.html')
 
 
+# uploads files to server from local storage via stream form and previews content for confirmation
 @app.route('/upload', methods=['POST'])
 def upload():
-    if "file" in request.files:
-        file = request.files["file"]
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+    shapefile = ""
+    files = request.files.getlist('file[]')
 
-    return render_template('home_page.html')
+    if len(files) >= 7:
+        for file in files:
+            filename = secure_filename(file.filename)
+            if ".shp" in filename and ".xml" not in filename:
+                shapefile = filename
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        if shapefile != "":
+            gdf = gpd.read_file("uploads/" + shapefile)
+            gdf_subset = gdf.loc[:9, ["Customer_N", "Service_Ad", "Account_Nu", "Premise_Nu"]]
+            table = gdf_subset.to_html(classes="table table-striped")
+            return render_template('upload_page.html', data=table)
+
+        # there was not a shape file in the uploaded files
+        else:
+            return redirect(url_for('root'))
+
+    # files did not contain enough information for the shape file to build the data set
+    else:
+        return redirect(url_for('root'))
+
+
+# handles confirmation on the upload page if user decides to save records to database.
+# creates new records from uploaded shape file, and then removes the files from database
+@app.route('/upload_page', methods=['GET', 'POST'])
+def upload_page():
+
+    # get shapefile from uploaded folder
+    shapefile = ""
+    for file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
+        filename = os.path.join(os.path.join(app.config["UPLOAD_FOLDER"]), file)
+        if ".shp" in str(filename) and ".xml" not in str(filename):
+            shapefile = filename
+
+    # if there is a shapefile
+    if shapefile != "":
+        gdf = gpd.read_file(shapefile)
+
+        # default values
+        location = 0
+        name = ""
+        address = ""
+        account = 0
+        premise = 0
+        comp_id = ""
+        comp_type = ""
+        num_acc = 0
+        num_ina = 0
+        area = ""
+        job_set = ""
+
+        # replace default values with values from shape file if they exist
+        for index, row in gdf.iterrows():
+            if row["geometry"]:
+                location = row["geometry"]
+            if row["Customer_N"]:
+                name = row["Customer_N"]
+            if row["Service_Ad"]:
+                address = row["Service_Ad"]
+            if row["Account_Nu"]:
+                account = row["Account_Nu"]
+            if row["Premise_Nu"]:
+                premise = row["Premise_Nu"]
+            if row["Component_"]:
+                comp_id = row["Component_"]
+            if row["Component1"]:
+                comp_type = row["Component1"]
+            if row["Number_Act"]:
+                num_acc = row["Number_Act"]
+            if row["Number_Ina"]:
+                num_ina = row["Number_Ina"]
+            if row["AREA"]:
+                area = row["AREA"]
+            if row["JOBSET"]:
+                job_set = row["JOBSET"]
+
+            # create the new record entry and save it to database
+            new_record = Customer(geolocation='POINT(' + str(location.x) + ' ' + str(location.y) + ')', name=name,
+                                  address=address, account_number=account, premise_number=premise, component_id=comp_id,
+                                  component_type=comp_type, number_accounted=num_acc, number_off=num_ina, area=area,
+                                  job_set=job_set)
+
+            db.session.add(new_record)
+            db.session.commit()
+
+        # remove files once complete
+        for remove_file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
+            file_path = os.path.join(os.path.join(app.config["UPLOAD_FOLDER"]), remove_file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
+        flash("Shapefile saved to database.", "success")
+
+        return redirect(url_for('root'))
 
 
 # app routes below correlate to map view
@@ -210,6 +311,9 @@ def add_record():
 def edit_record_page():
     e_id = request.form.get("edit_id")
     e_location = request.form.get("edit_location")
+    shapely_point = wkb.loads(e_location)
+    e_lat = shapely_point.x
+    e_lon = shapely_point.y
     e_name = request.form.get("edit_name")
     e_address = request.form.get('edit_address')
     e_account = request.form.get('edit_account')
@@ -220,7 +324,7 @@ def edit_record_page():
     e_num_off = request.form.get('edit_num_off')
     e_area = request.form.get('edit_area')
     e_job_set = request.form.get('edit_job_set')
-    editing_record = [e_id, e_location, e_name, e_address, e_account, e_premise, e_comp_id, e_comp_type, e_num_acc,
+    editing_record = [e_id, e_lat, e_lon, e_name, e_address, e_account, e_premise, e_comp_id, e_comp_type, e_num_acc,
                       e_num_off, e_area, e_job_set]
 
     return render_template('edit_record_page.html', data=editing_record)
@@ -369,7 +473,5 @@ def search_record():
         return render_template('record_page.html', data=data)
 
 
-'''
 if __name__ == "__main__":
     app.run()
-'''

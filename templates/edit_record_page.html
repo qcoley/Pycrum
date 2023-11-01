@@ -26,51 +26,51 @@
                     <form action="{{url_for('edit_record')}}" method="post" style="margin-top:25px">
                         <input type="hidden" name="new_edit_id" value="{{ data[0] }}">
                         <div class="form-group">
-                        <label for="Name">{{ data[2] }}</label>
+                        <label for="Name">{{ data[3] }}</label>
                         <input type="text" class="form-control" id="Name" name="new_edit_name"
                                placeholder="Enter name">
                         </div>
                         <div class="form-group">
-                        <label for="Address">{{ data[3] }}</label>
+                        <label for="Address">{{ data[4] }}</label>
                         <input type="text" class="form-control" id="Address" name="new_edit_address"
                                placeholder="Enter address">
                         </div>
                         <div class="form-group">
-                        <label for="Account">{{ data[4] }}</label>
+                        <label for="Account">{{ data[5] }}</label>
                         <input type="number" class="form-control" id="Account" name="new_edit_account"
                                placeholder="Enter account">
                         </div>
                         <div class="form-group">
-                        <label for="Premise">{{ data[5] }}</label>
+                        <label for="Premise">{{ data[6] }}</label>
                         <input type="number" class="form-control" id="Premise" name="new_edit_premise"
                                placeholder="Enter premise">
                         </div>
                         <div class="form-group">
-                        <label for="Component_ID">{{ data[6] }}</label>
+                        <label for="Component_ID">{{ data[7] }}</label>
                         <input type="Text" class="form-control" id="Component_ID" name="new_edit_comp_id"
                                placeholder="Enter component ID">
                         </div>
                         <div class="form-group">
-                        <label for="Component_Type">{{ data[7] }}</label>
+                        <label for="Component_Type">{{ data[8] }}</label>
                         <input type="Text" class="form-control" id="Component_Type" name="new_edit_comp_type"
                                placeholder="Enter component type">
                         </div>
                         <div class="form-group">
-                        <label for="Number_Accounted">{{ data[8] }}</label>
+                        <label for="Number_Accounted">{{ data[9] }}</label>
                         <input type="Number" class="form-control" id="Number_Accounted" name="new_edit_num_acc"
                                placeholder="Enter lights">
                         </div>
                         <div class="form-group">
-                        <label for="Number_Off">{{ data[9] }}</label>
+                        <label for="Number_Off">{{ data[10] }}</label>
                         <input type="Number" class="form-control" id="Number_Off" name="new_edit_num_off"
                                placeholder="Enter lights off">
                         </div>
                         <div class="form-group">
-                        <label for="Area">{{ data[10] }}</label>
+                        <label for="Area">{{ data[11] }}</label>
                         <input type="Text" class="form-control" id="Area" name="new_edit_area" placeholder="Enter area">
                         </div>
                         <div class="form-group">
-                        <label for="Job_Set">{{ data[11] }}</label>
+                        <label for="Job_Set">{{ data[12] }}</label>
                         <input type="Text" class="form-control" id="Job_Set" name="new_edit_job_set"
                                placeholder="Enter job set">
                         </div>
@@ -80,7 +80,7 @@
                                placeholder="Enter latitude">
                         </div>
                         <div class="form-group">
-                        <label for="Longitude">{{ data[1] }}</label>
+                        <label for="Longitude">{{ data[2] }}</label>
                         <input type="Number" step="0.01" class="form-control" id="Longitude" name="new_edit_longitude"
                                placeholder="Enter longitude">
                         </div>
@@ -95,4 +95,8 @@
             </div>
         </div>
     </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous">
+    </script>
 </html>

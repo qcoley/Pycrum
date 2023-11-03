@@ -23,65 +23,31 @@
             <div class="child">
                 <div style="background-color:dimgrey; padding: 50px;">
                     <div class="row">
-                        <h5> Confirm Record Delete </h5>
-                    </div>
-
-                    {% if data[0] == 'customer' %}
-                    <div class="row" style="margin-top:25px">
-                        <h7> ID: </h7>
-                        <h7 style="margin-left: 10px"> {{ data[1] }} </h7>
+                        <h5> Customer Information </h5>
                     </div>
                     <div class="row" style="margin-top:25px">
                         <h7> Name: </h7>
-                        <h7 style="margin-left: 10px"> {{ data[2] }} </h7>
-                    </div>
-                    <div class="row" style="margin-top:25px">
-                        <h7> Address: </h7>
-                        <h7 style="margin-left: 10px"> {{ data[3] }} </h7>
-                    </div>
-                    <div class="row" style="margin-top:25px">
-                        <h7> Account: </h7>
-                        <h7 style="margin-left: 10px"> {{ data[4] }} </h7>
-                    </div>
-                    <div class="row" style="margin-top:25px">
-                        <h7> Premise: </h7>
-                        <h7 style="margin-left: 10px"> {{ data[5] }} </h7>
-                    </div>
-                    {% endif %}
-
-                    {% if data[0] == 'light' %}
-                    <div class="row" style="margin-top:25px">
-                        <h7> ID: </h7>
                         <h7 style="margin-left: 10px"> {{ data[1] }} </h7>
                     </div>
                     <div class="row" style="margin-top:25px">
-                        <h7> Title: </h7>
+                        <h7> Address: </h7>
                         <h7 style="margin-left: 10px"> {{ data[2] }} </h7>
                     </div>
                     <div class="row" style="margin-top:25px">
-                        <h7> Address: </h7>
+                        <h7> Account: </h7>
                         <h7 style="margin-left: 10px"> {{ data[3] }} </h7>
                     </div>
                     <div class="row" style="margin-top:25px">
-                        <h7> PTAG: </h7>
+                        <h7> Premise: </h7>
                         <h7 style="margin-left: 10px"> {{ data[4] }} </h7>
                     </div>
                     <div class="row" style="margin-top:25px">
-                        <h7> LR Number: </h7>
+                        <h7> Lights: </h7>
                         <h7 style="margin-left: 10px"> {{ data[5] }} </h7>
                     </div>
-                    {% endif %}
-
-                    <form action="{{url_for('delete_record')}}" method="post">
-                        <input type="hidden" name="delete_type" value="{{ data[0] }}">
-                        <input type="hidden" name="delete_confirm_id" value="{{ data[1] }}">
-                        <div class="row" style="margin-top:50px">
-                        <button type="submit" class="btn btn-danger btn-block">Delete Record</button>
-                        </div>
-                        <div class="row" style="margin-top:25px">
-                            <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
-                        </div>
-                    </form>
+                    <div class="row" style="margin-top:25px">
+                        <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
+                    </div>
                 </div>
             </div>
         </div>

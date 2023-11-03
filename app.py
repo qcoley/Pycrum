@@ -2,6 +2,7 @@ import geopandas as gpd
 import folium
 import os
 import secrets
+
 from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from geoalchemy2 import Geometry
@@ -30,7 +31,6 @@ class Customer(db.Model):
     address = db.Column(db.String(120))
     account_number = db.Column(db.Integer)
     premise_number = db.Column(db.Integer)
-    lights = db.relationship('Light', backref='customer', lazy='dynamic')
     number_accounted = db.Column(db.Integer)
     number_off = db.Column(db.Integer)
     area = db.Column(db.String(80))
@@ -55,25 +55,27 @@ class Customer(db.Model):
 class Light(db.Model):
     __tablename__ = 'lights'
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
+    customer = db.relationship('Customer', backref=db.backref('lights'))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=True)
     geolocation = db.Column(Geometry('POINT'))
-    ptag = db.Column(db.Integer)
-    status = db.Column(db.String(120))
     title = db.Column(db.String(120))
-    lr_number = db.Column(db.String(120))
     address = db.Column(db.String(120))
+    ptag = db.Column(db.Integer)
+    lr_number = db.Column(db.String(120))
     area = db.Column(db.String(80))
     job_set = db.Column(db.String(120))
+    status = db.Column(db.String(120))
 
-    def __init__(self, geolocation, ptag, status, title, lr_number, address, area, job_set):
+    def __init__(self, geolocation, customer_id, title, address, ptag, lr_number, area, job_set, status):
         self.geolocation = geolocation
-        self.ptag = ptag
-        self.status = status
+        self.customer_id = customer_id
         self.title = title
-        self.lr_number = lr_number
         self.address = address
+        self.ptag = ptag
+        self.lr_number = lr_number
         self.area = area
         self.job_set = job_set
+        self.status = status
 
     def __repr__(self):
         return f'<Light {self.title}>'
@@ -83,34 +85,59 @@ class Light(db.Model):
 def generate_shape_map():
     # use sql and database connection to query customer data and create a geo data frame
     gdf_customers = gpd.GeoDataFrame.from_postgis("select * from customers", db.engine, geom_col='geolocation')
-    # set location and convert to geojson for choropleth layer
     gdf_customers = gdf_customers.set_crs("EPSG:4326")
-    geojson = gdf_customers.to_crs(epsg='4326').to_json()
 
+    # use sql and database connection to query light data and create a geo data frame
+    gdf_lights = gpd.GeoDataFrame.from_postgis("select * from lights", db.engine, geom_col='geolocation')
+    gdf_lights = gdf_lights.set_crs("EPSG:4326")
+
+    # create map
     m = folium.Map(location=[33.45, -86.75], zoom_start=10)
 
-    # create a folium choropleth object that shows markers for each billing customer
-    folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf_customers, columns=['name', 'address'],
-                      fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, legend_name='Customers').add_to(m)
+    # create a folium geojson objects from same dataset
+    geo_customers = folium.GeoJson(data=gdf_customers,
+                                   marker=folium.CircleMarker(radius=10, weight=1, color='black', fill_color='red',
+                                                              fill_opacity=1),
+                                   popup=folium.GeoJsonPopup(fields=['name', 'address', 'premise_number', 'link'],
+                                                             aliases=['Name', 'Address', 'Premise', 'Link'],
+                                                             style=("font-size: 12px; background-color: #fff; "
+                                                                    "border: 2px solid black; border-radius: 3px; "
+                                                                    "box-shadow: 3px")))
+    geo_lights = folium.GeoJson(data=gdf_lights,
+                                marker=folium.CircleMarker(radius=10, weight=1, color='black', fill_color='yellow',
+                                                           fill_opacity=1),
+                                popup=folium.GeoJsonPopup(fields=['title', 'address', 'status', 'link'],
+                                                          aliases=['Title', 'Address', 'Status', 'Link'],
+                                                          style=("font-size: 12px; background-color: #fff; "
+                                                                 "border: 2px solid black; border-radius: 3px; "
+                                                                 "box-shadow: 3px")))
 
-    # create a folium geojson object from same dataset
-    geo = folium.GeoJson(data=gdf_customers, popup=folium.GeoJsonPopup(fields=['name', 'address', "link"], labels=True))
-
-    geo.add_to(m)
-
-    # loop through geojson features
-    for feature in geo.data["features"]:
+    # loop through geojson features and add a link to update customer info
+    for feature in geo_customers.data["features"]:
         # create list of customer info to pass to link
-        record_list = [feature["properties"]["id"],
-                       feature["properties"]["name"],
-                       feature["properties"]["address"],
-                       feature["properties"]["account_number"],
+        record_list = ['customer', feature["properties"]["id"], feature["properties"]["name"],
+                       feature["properties"]["address"], feature["properties"]["account_number"],
                        feature["properties"]["premise_number"]]
 
         # generate a reference link to customer
         link = f"<a href='{url_for('update_record_page', record=record_list)}' target='_top'>Update Record</a>"
         # add link as new field to generate in map popup
         feature["properties"]["link"] = link
+
+    # loop through geojson features and add a link to update light info
+    for feature in geo_lights.data["features"]:
+        # create list of customer info to pass to link
+        record_list = ['light', feature["properties"]["id"], feature["properties"]["title"],
+                       feature["properties"]["address"], feature["properties"]["ptag"],
+                       feature["properties"]["status"]]
+
+        # generate a reference link to customer
+        link = f"<a href='{url_for('update_record_page', record=record_list)}' target='_top'>Update Record</a>"
+        # add link as new field to generate in map popup
+        feature["properties"]["link"] = link
+
+    geo_customers.add_to(m)
+    geo_lights.add_to(m)
 
     # save map to be displayed
     m.save("templates/map.html")
@@ -121,7 +148,7 @@ def generate_shape_map():
 @app.route('/')
 def root():
     # for when database needs to be created from Models
-    # db.create_all()
+    db.create_all()
 
     # to clear any previously uploaded files
     for remove_file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
@@ -251,29 +278,59 @@ def update_record_page():
 # route that handles updating the record information from map view record update
 @app.route('/update_record', methods=['POST'])
 def update_record():
-    u_id = request.form.get("update_id")
-    u_name = request.form.get("update_name")
-    u_address = request.form.get('update_address')
-    u_account = request.form.get('update_account')
-    u_premise = request.form.get('update_premise')
+    if request.form.get("update_type") == 'customer':
+        u_id = request.form.get("update_id")
+        u_name = request.form.get("update_name")
+        u_address = request.form.get('update_address')
+        u_account = request.form.get('update_account')
+        u_premise = request.form.get('update_premise')
 
-    updated_record = db.session.query(Customer).filter(Customer.id == u_id).first()
+        updated_record = db.session.query(Customer).filter(Customer.id == u_id).first()
 
-    if updated_record:
-        if u_name != "":
-            updated_record.name = u_name
-        if u_address != "":
-            updated_record.address = u_address
-        if u_account != "":
-            updated_record.account_number = int(u_account)
-        if u_premise != "":
-            updated_record.premise_number = int(u_premise)
+        if updated_record:
+            if u_name != "":
+                updated_record.name = u_name
+            if u_address != "":
+                updated_record.address = u_address
+            if u_account != "":
+                updated_record.account_number = int(u_account)
+            if u_premise != "":
+                updated_record.premise_number = int(u_premise)
 
-        db.session.commit()
-        generate_shape_map()
+            db.session.commit()
+            generate_shape_map()
 
-        return render_template('map_page.html')
+            return render_template('map_page.html')
 
+        else:
+            return render_template('map_page.html')
+
+    if request.form.get("update_type") == 'light':
+        u_l_id = request.form.get("update_l_id")
+        u_title = request.form.get("update_title")
+        u_l_address = request.form.get('update_l_address')
+        u_ptag = request.form.get('update_ptag')
+        u_status = request.form.get('update_status')
+
+        updated_record = db.session.query(Light).filter(Light.id == u_l_id).first()
+
+        if updated_record:
+            if u_title != "":
+                updated_record.title = u_title
+            if u_l_address != "":
+                updated_record.address = u_l_address
+            if u_ptag != "":
+                updated_record.ptag = int(u_ptag)
+            if u_status != "":
+                updated_record.status = u_status
+
+            db.session.commit()
+            generate_shape_map()
+
+            return render_template('map_page.html')
+
+        else:
+            return render_template('map_page.html')
     else:
         return render_template('map_page.html')
 
@@ -283,7 +340,9 @@ def update_record():
 # record page that shows all record information from a database query
 @app.route('/record_page')
 def record_page():
-    data = db.session.execute(text("SELECT * FROM customers"))
+    data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+    data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+    data = [data_cust, data_light]
     return render_template('record_page.html', data=data)
 
 
@@ -300,10 +359,8 @@ def add_record_page():
 # route that handles adding the record by getting form data and inserting into database
 @app.route('/add_record', methods=['GET', 'POST'])
 def add_record():
-
     if request.method == 'POST':
         add = request.args.get('add')
-        print(request.args.get('add'))
 
         if add == "customer":
             name = request.form.get("Name")
@@ -319,114 +376,228 @@ def add_record():
 
             new_record = Customer(geolocation='POINT(' + str(latitude) + ' ' + str(longitude) + ')', name=name,
                                   address=address, account_number=account, premise_number=premise,
-                                  number_accounted=number_accounted, number_off=number_off, area=area, job_set=job_set)
+                                  number_accounted=number_accounted, number_off=number_off, area=area,
+                                  job_set=job_set)
             db.session.add(new_record)
             db.session.commit()
 
-            data = db.session.execute(text("SELECT * FROM customers"))
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
             return render_template('record_page.html', data=data)
 
-        data = db.session.execute(text("SELECT * FROM customers"))
+        if add == "light":
+            customer_id = request.form.get("Customer_ID")
+            title = request.form.get("Title")
+            address = request.form.get('L_Address')
+            ptag = request.form.get('PTAG')
+            status = request.form.get('Status')
+            lr_number = request.form.get('LR_Number')
+            area = request.form.get('L_Area')
+            job_set = request.form.get('L_Job_Set')
+            latitude = request.form.get('L_Latitude')
+            longitude = request.form.get('L_Longitude')
+
+            new_record = Light(geolocation='POINT(' + str(latitude) + ' ' + str(longitude) + ')',
+                               customer_id=customer_id, title=title, address=address, ptag=ptag,
+                               lr_number=lr_number, area=area, job_set=job_set, status=status, )
+            db.session.add(new_record)
+            db.session.commit()
+
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
+            return render_template('record_page.html', data=data)
+
+        data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+        data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+        data = [data_cust, data_light]
+        return render_template('record_page.html', data=data)
+
+    else:
+        data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+        data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+        data = [data_cust, data_light]
         return render_template('record_page.html', data=data)
 
 
 # route that shows the edit record page from the records page
 @app.route('/edit_record_page', methods=['POST'])
 def edit_record_page():
-    e_id = request.form.get("edit_id")
-    e_location = request.form.get("edit_location")
-    shapely_point = wkb.loads(e_location)
-    e_lat = shapely_point.x
-    e_lon = shapely_point.y
-    e_name = request.form.get("edit_name")
-    e_address = request.form.get('edit_address')
-    e_account = request.form.get('edit_account')
-    e_premise = request.form.get('edit_premise')
-    e_num_acc = request.form.get('edit_num_acc')
-    e_num_off = request.form.get('edit_num_off')
-    e_area = request.form.get('edit_area')
-    e_job_set = request.form.get('edit_job_set')
-    editing_record = [e_id, e_lat, e_lon, e_name, e_address, e_account, e_premise, e_num_acc, e_num_off, e_area,
-                      e_job_set]
+    if request.form.get("editing_customer") == "yes":
+        e_id = request.form.get("edit_id")
+        e_location = request.form.get("edit_location")
+        shapely_point = wkb.loads(e_location)
+        e_lat = shapely_point.x
+        e_lon = shapely_point.y
+        e_name = request.form.get("edit_name")
+        e_address = request.form.get('edit_address')
+        e_account = request.form.get('edit_account')
+        e_premise = request.form.get('edit_premise')
+        e_num_acc = request.form.get('edit_num_acc')
+        e_num_off = request.form.get('edit_num_off')
+        e_area = request.form.get('edit_area')
+        e_job_set = request.form.get('edit_job_set')
+        editing_record = ["customer", e_id, e_lat, e_lon, e_name, e_address, e_account, e_premise, e_num_acc,
+                          e_num_off, e_area, e_job_set]
 
-    return render_template('edit_record_page.html', data=editing_record)
+        return render_template('edit_record_page.html', data=editing_record)
+
+    if request.form.get("editing_light") == "yes":
+        e_l_id = request.form.get("edit_l_id")
+        e_c_id = request.form.get("edit_customer_id")
+        e_l_location = request.form.get("edit_l_location")
+        shapely_point = wkb.loads(e_l_location)
+        e_l_lat = shapely_point.x
+        e_l_lon = shapely_point.y
+        e_title = request.form.get("edit_title")
+        e_l_address = request.form.get('edit_l_address')
+        e_ptag = request.form.get('edit_ptag')
+        e_lr_number = request.form.get('edit_lr_number')
+        e_l_area = request.form.get('edit_l_area')
+        e_l_job_set = request.form.get('edit_l_job_set')
+        e_status = request.form.get('edit_status')
+        editing_record = ["light", e_l_id, e_c_id, e_l_lat, e_l_lon, e_title, e_l_address, e_ptag, e_lr_number,
+                          e_l_area, e_l_job_set, e_status]
+
+        return render_template('edit_record_page.html', data=editing_record)
 
 
 # route that handles editing record data by getting the info from the edit page
 @app.route('/edit_record', methods=['POST'])
 def edit_record():
-    new_e_id = request.form.get("new_edit_id")
-    new_e_latitude = request.form.get("new_edit_latitude")
-    new_e_longitude = request.form.get("new_edit_longitude")
-    new_e_name = request.form.get("new_edit_name")
-    new_e_address = request.form.get('new_edit_address')
-    new_e_account = request.form.get('new_edit_account')
-    new_e_premise = request.form.get('new_edit_premise')
-    new_e_num_acc = request.form.get('new_edit_num_acc')
-    new_e_num_off = request.form.get('new_edit_num_off')
-    new_e_area = request.form.get('new_edit_area')
-    new_e_job_set = request.form.get('new_edit_job_set')
+    if request.form.get("new_edit_type") == "customer":
+        new_e_id = request.form.get("new_edit_id")
+        new_e_latitude = request.form.get("new_edit_latitude")
+        new_e_longitude = request.form.get("new_edit_longitude")
+        new_e_name = request.form.get("new_edit_name")
+        new_e_address = request.form.get('new_edit_address')
+        new_e_account = request.form.get('new_edit_account')
+        new_e_premise = request.form.get('new_edit_premise')
+        new_e_num_acc = request.form.get('new_edit_num_acc')
+        new_e_num_off = request.form.get('new_edit_num_off')
+        new_e_area = request.form.get('new_edit_area')
+        new_e_job_set = request.form.get('new_edit_job_set')
 
-    edited_record = db.session.query(Customer).filter(Customer.id == new_e_id).first()
+        edited_record = db.session.query(Customer).filter(Customer.id == new_e_id).first()
 
-    if edited_record:
-        if new_e_latitude != "" and new_e_longitude != "":
-            edited_record.geolocation = 'POINT(' + str(new_e_latitude) + ' ' + str(new_e_longitude) + ')'
-        if new_e_name != "":
-            edited_record.name = new_e_name
-        if new_e_address != "":
-            edited_record.address = new_e_address
-        if new_e_account != "":
-            edited_record.account_number = int(new_e_account)
-        if new_e_premise != "":
-            edited_record.premise_number = int(new_e_premise)
-        if new_e_num_acc != "":
-            edited_record.number_accounted = new_e_num_acc
-        if new_e_num_off != "":
-            edited_record.number_off = new_e_num_off
-        if new_e_area != "":
-            edited_record.area = new_e_area
-        if new_e_job_set != "":
-            edited_record.job_set = new_e_job_set
+        if edited_record:
+            if new_e_latitude != "" and new_e_longitude != "":
+                edited_record.geolocation = 'POINT(' + str(new_e_latitude) + ' ' + str(new_e_longitude) + ')'
+            if new_e_name != "":
+                edited_record.name = new_e_name
+            if new_e_address != "":
+                edited_record.address = new_e_address
+            if new_e_account != "":
+                edited_record.account_number = int(new_e_account)
+            if new_e_premise != "":
+                edited_record.premise_number = int(new_e_premise)
+            if new_e_num_acc != "":
+                edited_record.number_accounted = new_e_num_acc
+            if new_e_num_off != "":
+                edited_record.number_off = new_e_num_off
+            if new_e_area != "":
+                edited_record.area = new_e_area
+            if new_e_job_set != "":
+                edited_record.job_set = new_e_job_set
 
-        db.session.commit()
-        data = db.session.execute(text("SELECT * FROM customers"))
-        return render_template('record_page.html', data=data)
+            db.session.commit()
 
-    else:
-        data = db.session.execute(text("SELECT * FROM customers"))
-        return render_template('record_page.html', data=data)
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
+            return render_template('record_page.html', data=data)
+
+    if request.form.get("new_edit_type") == "light":
+        new_e_l_id = request.form.get("new_edit_l_id")
+        new_e_l_latitude = request.form.get("new_edit_l_latitude")
+        new_e_l_longitude = request.form.get("new_edit_l_longitude")
+        new_e_title = request.form.get("new_edit_title")
+        new_e_l_address = request.form.get('new_edit_l_address')
+        new_e_ptag = request.form.get('new_edit_ptag')
+        new_e_lr_number = request.form.get('new_edit_lr_number')
+        new_e_l_area = request.form.get('new_edit_l_area')
+        new_e_l_job_set = request.form.get('new_edit_l_job_set')
+        new_e_status = request.form.get('new_edit_status')
+
+        edited_record = db.session.query(Light).filter(Light.id == new_e_l_id).first()
+
+        if edited_record:
+            if new_e_l_latitude != "" and new_e_l_longitude != "":
+                edited_record.geolocation = 'POINT(' + str(new_e_l_latitude) + ' ' + str(new_e_l_longitude) + ')'
+            if new_e_title != "":
+                edited_record.title = new_e_title
+            if new_e_l_address != "":
+                edited_record.address = new_e_l_address
+            if new_e_ptag != "":
+                edited_record.ptag = int(new_e_ptag)
+            if new_e_lr_number != "":
+                edited_record.lr_number = new_e_lr_number
+            if new_e_l_area != "":
+                edited_record.area = new_e_l_area
+            if new_e_l_job_set != "":
+                edited_record.job_set = new_e_l_job_set
+            if new_e_status != "":
+                edited_record.status = new_e_status
+
+            db.session.commit()
+
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
+            return render_template('record_page.html', data=data)
 
 
 # route that shows the delete record page for confirming deletion of a record
 @app.route('/delete_record_page', methods=['POST'])
 def delete_record_page():
-    d_id = request.form.get("delete_id")
-    d_name = request.form.get("delete_name")
-    d_address = request.form.get('delete_address')
-    d_account = request.form.get('delete_account')
-    d_premise = request.form.get('delete_premise')
-    deleting_record = [d_id, d_name, d_address, d_account, d_premise]
+    if request.form.get("deleting_customer") == "yes":
+        d_id = request.form.get("delete_id")
+        d_name = request.form.get("delete_name")
+        d_address = request.form.get('delete_address')
+        d_account = request.form.get('delete_account')
+        d_premise = request.form.get('delete_premise')
+        deleting_record = ["customer", d_id, d_name, d_address, d_account, d_premise]
 
-    return render_template('delete_record_page.html', data=deleting_record)
+        return render_template('delete_record_page.html', data=deleting_record)
+
+    if request.form.get("deleting_light") == "yes":
+        d_l_id = request.form.get("delete_l_id")
+        d_title = request.form.get("delete_title")
+        d_l_address = request.form.get('delete_l_address')
+        d_ptag = request.form.get('delete_ptag')
+        d_lr_number = request.form.get('delete_lr_number')
+        deleting_record = ["light", d_l_id, d_title, d_l_address, d_ptag, d_lr_number]
+
+        return render_template('delete_record_page.html', data=deleting_record)
 
 
 # route that handles deleting record by getting id from confirmation page
 @app.route('/delete_record', methods=['POST'])
 def delete_record():
-    delete_id = request.form.get("delete_confirm_id")
+    if request.form.get("delete_type") == "customer":
+        delete_id = request.form.get("delete_confirm_id")
+        deleting_record = db.session.query(Customer).filter(Customer.id == delete_id).first()
 
-    deleting_record = db.session.query(Customer).filter(Customer.id == delete_id).first()
+        if deleting_record:
+            db.session.delete(deleting_record)
+            db.session.commit()
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
+            return render_template('record_page.html', data=data)
 
-    if deleting_record:
-        db.session.delete(deleting_record)
-        db.session.commit()
-        data = db.session.execute(text("SELECT * FROM customers"))
-        return render_template('record_page.html', data=data)
+    if request.form.get("delete_type") == "light":
+        delete_id = request.form.get("delete_confirm_id")
+        deleting_record = db.session.query(Light).filter(Light.id == delete_id).first()
 
-    else:
-        data = db.session.execute(text("SELECT * FROM customers"))
-        return render_template('record_page.html', data=data)
+        if deleting_record:
+            db.session.delete(deleting_record)
+            db.session.commit()
+            data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+            data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+            data = [data_cust, data_light]
+            return render_template('record_page.html', data=data)
 
 
 # route that handles deleting record by getting id from confirmation page
@@ -434,48 +605,124 @@ def delete_record():
 def search_record():
     search_this = request.form.get("search_this")
 
-    if search_this.split(":")[0].lower().strip() == "name":
+    if search_this.split(":")[0].lower().strip() == "c id":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"name='{search_this.split(':')[1].strip()}'"))
+                                       f"id='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
-    elif search_this.split(":")[0].lower().strip() == "address":
+    elif search_this.split(":")[0].lower().strip() == "name":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"address='{search_this.split(':')[1].strip()}'"))
+                                       f"name='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "c address":
+        data = db.session.execute(text(f"SELECT * FROM customers WHERE "
+                                       f"address='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
     elif search_this.split(":")[0].lower().strip() == "account":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"account_number='{search_this.split(':')[1].strip()}'"))
+                                       f"account_number='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
     elif search_this.split(":")[0].lower().strip() == "premise":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"premise_number='{search_this.split(':')[1].strip()}'"))
+                                       f"premise_number='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
     elif search_this.split(":")[0].lower().strip() == "number accounted":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"number_accounted='{search_this.split(':')[1].strip()}'"))
+                                       f"number_accounted='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
     elif search_this.split(":")[0].lower().strip() == "number off":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"number_off='{search_this.split(':')[1].strip()}'"))
+                                       f"number_off='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
-    elif search_this.split(":")[0].lower().strip() == "area":
+    elif search_this.split(":")[0].lower().strip() == "c area":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"area='{search_this.split(':')[1].strip()}'"))
+                                       f"area='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
         return render_template('record_page.html', data=data)
 
-    elif search_this.split(":")[0].lower().strip() == "job set":
+    elif search_this.split(":")[0].lower().strip() == "c job set":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"job_set='{search_this.split(':')[1].strip()}'"))
+                                       f"job_set='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [data, None]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "l id":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"id='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "title":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"title='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "l address":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"address='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "ptag":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"ptag='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "lr number":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"lr_number='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
+        return render_template('record_page.html', data=data)
+
+    elif search_this.split(":")[0].lower().strip() == "status":
+        data = db.session.execute(text(f"SELECT * FROM lights WHERE "
+                                       f"status='{search_this.split(':')[1].strip()}' ORDER BY id"))
+        data = [None, data]
         return render_template('record_page.html', data=data)
 
     else:
-        data = db.session.execute(text("SELECT * FROM customers"))
+        data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+        data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+        data = [data_cust, data_light]
+        return render_template('record_page.html', data=data)
+
+
+# route that handles deleting record by getting id from confirmation page
+@app.route('/show_customer', methods=['POST'])
+def show_customer():
+    show_customer_id = request.form.get("show_customer_id")
+    showing_record = db.session.query(Customer).filter(Customer.id == show_customer_id).first()
+
+    if showing_record:
+        s_id = show_customer_id
+        s_name = showing_record.name
+        s_address = showing_record.address
+        s_account = showing_record.account_number
+        s_premise = showing_record.premise_number
+        s_lights = showing_record.lights
+        show_record = [s_id, s_name, s_address, s_account, s_premise, s_lights]
+
+        return render_template('show_customer_page.html', data=show_record)
+
+    else:
+        data_cust = db.session.execute(text("SELECT * FROM customers ORDER BY id"))
+        data_light = db.session.execute(text("SELECT * FROM lights ORDER BY id"))
+        data = [data_cust, data_light]
         return render_template('record_page.html', data=data)
 
 

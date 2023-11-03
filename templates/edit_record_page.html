@@ -23,54 +23,58 @@
             <div class="child">
                 <div style="background-color:dimgrey; padding: 50px;">
                     <h5> Edit Record Information </h5>
+
+                    {% if data[0] == 'customer' %}
                     <form action="{{url_for('edit_record')}}" method="post" style="margin-top:25px">
-                        <input type="hidden" name="new_edit_id" value="{{ data[0] }}">
+                        <input type="hidden" name="new_edit_type" value="{{ data[0] }}">
+                        <input type="hidden" name="new_edit_id" value="{{ data[1] }}">
+
                         <div class="form-group">
-                        <label for="Name">{{ data[3] }}</label>
+                        <label for="Name">{{ data[4] }}</label>
                         <input type="text" class="form-control" id="Name" name="new_edit_name"
                                placeholder="Enter name">
                         </div>
                         <div class="form-group">
-                        <label for="Address">{{ data[4] }}</label>
+                        <label for="Address">{{ data[5] }}</label>
                         <input type="text" class="form-control" id="Address" name="new_edit_address"
                                placeholder="Enter address">
                         </div>
                         <div class="form-group">
-                        <label for="Account">{{ data[5] }}</label>
+                        <label for="Account">{{ data[6] }}</label>
                         <input type="number" class="form-control" id="Account" name="new_edit_account"
                                placeholder="Enter account">
                         </div>
                         <div class="form-group">
-                        <label for="Premise">{{ data[6] }}</label>
+                        <label for="Premise">{{ data[7] }}</label>
                         <input type="number" class="form-control" id="Premise" name="new_edit_premise"
                                placeholder="Enter premise">
                         </div>
                         <div class="form-group">
-                        <label for="Number_Accounted">{{ data[9] }}</label>
+                        <label for="Number_Accounted">{{ data[8] }}</label>
                         <input type="Number" class="form-control" id="Number_Accounted" name="new_edit_num_acc"
-                               placeholder="Enter lights">
+                               placeholder="Enter lights accounted">
                         </div>
                         <div class="form-group">
-                        <label for="Number_Off">{{ data[10] }}</label>
+                        <label for="Number_Off">{{ data[9] }}</label>
                         <input type="Number" class="form-control" id="Number_Off" name="new_edit_num_off"
                                placeholder="Enter lights off">
                         </div>
                         <div class="form-group">
-                        <label for="Area">{{ data[11] }}</label>
+                        <label for="Area">{{ data[10] }}</label>
                         <input type="Text" class="form-control" id="Area" name="new_edit_area" placeholder="Enter area">
                         </div>
                         <div class="form-group">
-                        <label for="Job_Set">{{ data[12] }}</label>
+                        <label for="Job_Set">{{ data[11] }}</label>
                         <input type="Text" class="form-control" id="Job_Set" name="new_edit_job_set"
                                placeholder="Enter job set">
                         </div>
                         <div class="form-group">
-                        <label for="Latitude">{{ data[1] }}</label>
+                        <label for="Latitude">{{ data[2] }}</label>
                         <input type="Number" step="0.01" class="form-control" id="Latitude" name="new_edit_latitude"
                                placeholder="Enter latitude">
                         </div>
                         <div class="form-group">
-                        <label for="Longitude">{{ data[2] }}</label>
+                        <label for="Longitude">{{ data[3] }}</label>
                         <input type="Number" step="0.01" class="form-control" id="Longitude" name="new_edit_longitude"
                                placeholder="Enter longitude">
                         </div>
@@ -81,6 +85,70 @@
                             <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
                         </div>
                     </form>
+                    {% endif %}
+
+                    {% if data[0] == 'light' %}
+                    <form action="{{url_for('edit_record')}}" method="post" style="margin-top:25px">
+                        <input type="hidden" name="new_edit_type" value="{{ data[0] }}">
+                        <input type="hidden" name="new_edit_l_id" value="{{ data[1] }}">
+                        <div class="form-group">
+                        <label for="Cust_id">{{ data[1] }}</label>
+                        <input type="text" class="form-control" id="Cust_id" name="new_edit_l_c_id"
+                               placeholder="Enter customer id">
+                        </div>
+                        <div class="form-group">
+                        <label for="Title">{{ data[5] }}</label>
+                        <input type="text" class="form-control" id="Title" name="new_edit_title"
+                               placeholder="Enter title">
+                        </div>
+                        <div class="form-group">
+                        <label for="L_address">{{ data[6] }}</label>
+                        <input type="text" class="form-control" id="L_address" name="new_edit_l_address"
+                               placeholder="Enter address">
+                        </div>
+                        <div class="form-group">
+                        <label for="PTAG">{{ data[7] }}</label>
+                        <input type="number" class="form-control" id="PTAG" name="new_edit_ptag"
+                               placeholder="Enter Ptag">
+                        </div>
+                        <div class="form-group">
+                        <label for="LR_number">{{ data[8] }}</label>
+                        <input type="text" class="form-control" id="LR_number" name="new_edit_lr_number"
+                               placeholder="Enter LR Number">
+                        </div>
+                        <div class="form-group">
+                        <label for="L_area">{{ data[9] }}</label>
+                        <input type="Text" class="form-control" id="L_area" name="new_edit_l_area"
+                               placeholder="Enter area">
+                        </div>
+                        <div class="form-group">
+                        <label for="L_job_set">{{ data[10] }}</label>
+                        <input type="Text" class="form-control" id="L_job_set" name="new_edit_l_job_set"
+                               placeholder="Enter job set">
+                        </div>
+                        <div class="form-group">
+                        <label for="Status">{{ data[11] }}</label>
+                        <input type="Text" class="form-control" id="Status" name="new_edit_status"
+                               placeholder="Enter status">
+                        </div>
+                        <div class="form-group">
+                        <label for="L_latitude">{{ data[3] }}</label>
+                        <input type="Number" step="0.01" class="form-control" id="L_latitude" name="new_edit_l_latitude"
+                               placeholder="Enter latitude">
+                        </div>
+                        <div class="form-group">
+                        <label for="L_longitude">{{ data[4] }}</label>
+                        <input type="Number" step="0.01" class="form-control" id="l_longitude"
+                               name="new_edit_l_longitude" placeholder="Enter longitude">
+                        </div>
+                        <div class="row" style="margin-top:50px">
+                        <button type="submit" class="btn btn-warning btn-block">Edit Record</button>
+                        </div>
+                        <div class="row" style="margin-top:25px">
+                            <a class="btn btn-light btn-block" href="{{url_for('record_page')}}">Back</a>
+                        </div>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

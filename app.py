@@ -726,5 +726,7 @@ def show_customer():
         return render_template('record_page.html', data=data)
 
 
+'''
 if __name__ == "__main__":
     app.run()
+'''

@@ -9,7 +9,6 @@ from sqlalchemy import text
 from werkzeug.utils import secure_filename
 from shapely import wkb
 
-
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = ('postgresql+psycopg2://'
@@ -25,29 +24,25 @@ db = SQLAlchemy(app)
 # ----------------------------------------------------------------------------------------------------------------------
 class Customer(db.Model):
     __tablename__ = 'customers'
-
     id = db.Column(db.Integer, primary_key=True)
     geolocation = db.Column(Geometry('POINT'))
     name = db.Column(db.String(80))
     address = db.Column(db.String(120))
     account_number = db.Column(db.Integer)
     premise_number = db.Column(db.Integer)
-    component_id = db.Column(db.String(80))
-    component_type = db.Column(db.String(120))
+    lights = db.relationship('Light', backref='customer', lazy='dynamic')
     number_accounted = db.Column(db.Integer)
     number_off = db.Column(db.Integer)
     area = db.Column(db.String(80))
     job_set = db.Column(db.String(120))
 
-    def __init__(self, geolocation, name, address, account_number, premise_number, component_id, component_type,
-                 number_accounted, number_off, area, job_set):
+    def __init__(self, geolocation, name, address, account_number, premise_number, number_accounted, number_off, area,
+                 job_set):
         self.geolocation = geolocation
         self.name = name
         self.address = address
         self.account_number = account_number
         self.premise_number = premise_number
-        self.component_id = component_id
-        self.component_type = component_type
         self.number_accounted = number_accounted
         self.number_off = number_off
         self.area = area
@@ -57,22 +52,49 @@ class Customer(db.Model):
         return f'<Customer {self.name}>'
 
 
+class Light(db.Model):
+    __tablename__ = 'lights'
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
+    geolocation = db.Column(Geometry('POINT'))
+    ptag = db.Column(db.Integer)
+    status = db.Column(db.String(120))
+    title = db.Column(db.String(120))
+    lr_number = db.Column(db.String(120))
+    address = db.Column(db.String(120))
+    area = db.Column(db.String(80))
+    job_set = db.Column(db.String(120))
+
+    def __init__(self, geolocation, ptag, status, title, lr_number, address, area, job_set):
+        self.geolocation = geolocation
+        self.ptag = ptag
+        self.status = status
+        self.title = title
+        self.lr_number = lr_number
+        self.address = address
+        self.area = area
+        self.job_set = job_set
+
+    def __repr__(self):
+        return f'<Light {self.title}>'
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_shape_map():
     # use sql and database connection to query customer data and create a geo data frame
-    gdf = gpd.GeoDataFrame.from_postgis("select * from customers", db.engine, geom_col='geolocation')
+    gdf_customers = gpd.GeoDataFrame.from_postgis("select * from customers", db.engine, geom_col='geolocation')
     # set location and convert to geojson for choropleth layer
-    gdf = gdf.set_crs("EPSG:4326")
-    geojson = gdf.to_crs(epsg='4326').to_json()
+    gdf_customers = gdf_customers.set_crs("EPSG:4326")
+    geojson = gdf_customers.to_crs(epsg='4326').to_json()
 
-    m = folium.Map(location=[gdf.iloc[0].geolocation.centroid.y, gdf.iloc[0].geolocation.centroid.x], zoom_start=10)
+    m = folium.Map(location=[33.45, -86.75], zoom_start=10)
 
     # create a folium choropleth object that shows markers for each billing customer
-    folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf, columns=['name', 'address'],
+    folium.Choropleth(geo_data=geojson, name='choropleth', data=gdf_customers, columns=['name', 'address'],
                       fill_color='YlGn', fill_opacity=0.7, line_opacity=0.2, legend_name='Customers').add_to(m)
 
     # create a folium geojson object from same dataset
-    geo = folium.GeoJson(data=gdf, popup=folium.GeoJsonPopup(fields=['name', 'address', "link"], labels=True))
+    geo = folium.GeoJson(data=gdf_customers, popup=folium.GeoJsonPopup(fields=['name', 'address', "link"], labels=True))
 
     geo.add_to(m)
 
@@ -142,7 +164,6 @@ def upload():
 # creates new records from uploaded shape file, and then removes the files from database
 @app.route('/upload_page', methods=['GET', 'POST'])
 def upload_page():
-
     # get shapefile from uploaded folder
     shapefile = ""
     for file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
@@ -160,8 +181,6 @@ def upload_page():
         address = ""
         account = 0
         premise = 0
-        comp_id = ""
-        comp_type = ""
         num_acc = 0
         num_ina = 0
         area = ""
@@ -179,10 +198,6 @@ def upload_page():
                 account = row["Account_Nu"]
             if row["Premise_Nu"]:
                 premise = row["Premise_Nu"]
-            if row["Component_"]:
-                comp_id = row["Component_"]
-            if row["Component1"]:
-                comp_type = row["Component1"]
             if row["Number_Act"]:
                 num_acc = row["Number_Act"]
             if row["Number_Ina"]:
@@ -194,9 +209,8 @@ def upload_page():
 
             # create the new record entry and save it to database
             new_record = Customer(geolocation='POINT(' + str(location.x) + ' ' + str(location.y) + ')', name=name,
-                                  address=address, account_number=account, premise_number=premise, component_id=comp_id,
-                                  component_type=comp_type, number_accounted=num_acc, number_off=num_ina, area=area,
-                                  job_set=job_set)
+                                  address=address, account_number=account, premise_number=premise,
+                                  number_accounted=num_acc, number_off=num_ina, area=area, job_set=job_set)
 
             db.session.add(new_record)
             db.session.commit()
@@ -274,36 +288,46 @@ def record_page():
 
 
 # add record from the records page
-@app.route('/add_record_page', methods=['POST'])
+@app.route('/add_record_page', methods=['GET', 'POST'])
 def add_record_page():
-    return render_template('add_record_page.html')
+    if request.method == 'GET':
+        picked = request.args.get('pick')
+        return render_template('add_record_page.html', choices=["Customer", "Light"], pick=picked)
+
+    return render_template('add_record_page.html', choices=["Customer", "Light"])
 
 
 # route that handles adding the record by getting form data and inserting into database
-@app.route('/add_record', methods=['POST'])
+@app.route('/add_record', methods=['GET', 'POST'])
 def add_record():
-    name = request.form.get("Name")
-    address = request.form.get('Address')
-    account = request.form.get('Account')
-    premise = request.form.get('Premise')
-    component_id = request.form.get('Component_ID')
-    component_type = request.form.get('Component_Type')
-    number_accounted = request.form.get('Number_Accounted')
-    number_off = request.form.get('Number_Off')
-    area = request.form.get('Area')
-    job_set = request.form.get('Job_Set')
-    latitude = request.form.get('Latitude')
-    longitude = request.form.get('Longitude')
 
-    new_record = Customer(geolocation='POINT(' + str(latitude) + ' ' + str(longitude) + ')', name=name, address=address,
-                          account_number=account, premise_number=premise, component_id=component_id,
-                          component_type=component_type, number_accounted=number_accounted, number_off=number_off,
-                          area=area, job_set=job_set)
-    db.session.add(new_record)
-    db.session.commit()
+    if request.method == 'POST':
+        add = request.args.get('add')
+        print(request.args.get('add'))
 
-    data = db.session.execute(text("SELECT * FROM customers"))
-    return render_template('record_page.html', data=data)
+        if add == "customer":
+            name = request.form.get("Name")
+            address = request.form.get('Address')
+            account = request.form.get('Account')
+            premise = request.form.get('Premise')
+            number_accounted = request.form.get('Number_Accounted')
+            number_off = request.form.get('Number_Off')
+            area = request.form.get('Area')
+            job_set = request.form.get('Job_Set')
+            latitude = request.form.get('Latitude')
+            longitude = request.form.get('Longitude')
+
+            new_record = Customer(geolocation='POINT(' + str(latitude) + ' ' + str(longitude) + ')', name=name,
+                                  address=address, account_number=account, premise_number=premise,
+                                  number_accounted=number_accounted, number_off=number_off, area=area, job_set=job_set)
+            db.session.add(new_record)
+            db.session.commit()
+
+            data = db.session.execute(text("SELECT * FROM customers"))
+            return render_template('record_page.html', data=data)
+
+        data = db.session.execute(text("SELECT * FROM customers"))
+        return render_template('record_page.html', data=data)
 
 
 # route that shows the edit record page from the records page
@@ -318,14 +342,12 @@ def edit_record_page():
     e_address = request.form.get('edit_address')
     e_account = request.form.get('edit_account')
     e_premise = request.form.get('edit_premise')
-    e_comp_id = request.form.get('edit_comp_id')
-    e_comp_type = request.form.get('edit_comp_type')
     e_num_acc = request.form.get('edit_num_acc')
     e_num_off = request.form.get('edit_num_off')
     e_area = request.form.get('edit_area')
     e_job_set = request.form.get('edit_job_set')
-    editing_record = [e_id, e_lat, e_lon, e_name, e_address, e_account, e_premise, e_comp_id, e_comp_type, e_num_acc,
-                      e_num_off, e_area, e_job_set]
+    editing_record = [e_id, e_lat, e_lon, e_name, e_address, e_account, e_premise, e_num_acc, e_num_off, e_area,
+                      e_job_set]
 
     return render_template('edit_record_page.html', data=editing_record)
 
@@ -340,8 +362,6 @@ def edit_record():
     new_e_address = request.form.get('new_edit_address')
     new_e_account = request.form.get('new_edit_account')
     new_e_premise = request.form.get('new_edit_premise')
-    new_e_comp_id = request.form.get('new_edit_comp_id')
-    new_e_comp_type = request.form.get('new_edit_comp_type')
     new_e_num_acc = request.form.get('new_edit_num_acc')
     new_e_num_off = request.form.get('new_edit_num_off')
     new_e_area = request.form.get('new_edit_area')
@@ -360,10 +380,6 @@ def edit_record():
             edited_record.account_number = int(new_e_account)
         if new_e_premise != "":
             edited_record.premise_number = int(new_e_premise)
-        if new_e_comp_id != "":
-            edited_record.component_id = new_e_comp_id
-        if new_e_comp_type != "":
-            edited_record.component_type = new_e_comp_type
         if new_e_num_acc != "":
             edited_record.number_accounted = new_e_num_acc
         if new_e_num_off != "":
@@ -436,16 +452,6 @@ def search_record():
     elif search_this.split(":")[0].lower().strip() == "premise":
         data = db.session.execute(text(f"SELECT * FROM customers WHERE "
                                        f"premise_number='{search_this.split(':')[1].strip()}'"))
-        return render_template('record_page.html', data=data)
-
-    elif search_this.split(":")[0].lower().strip() == "component id":
-        data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"component_id='{search_this.split(':')[1].strip()}'"))
-        return render_template('record_page.html', data=data)
-
-    elif search_this.split(":")[0].lower().strip() == "component type":
-        data = db.session.execute(text(f"SELECT * FROM customers WHERE "
-                                       f"component_type='{search_this.split(':')[1].strip()}'"))
         return render_template('record_page.html', data=data)
 
     elif search_this.split(":")[0].lower().strip() == "number accounted":

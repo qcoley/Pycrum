@@ -46,6 +46,13 @@
                                 <button class="btn btn-secondary" type="submit">Upload</button>
                             </div>
                         </div>
+                        <div class="form-group" style="margin-top:5px">
+                            <select id="file_type" name="file_type" class="form-control">
+                                {% for file_type in ["Customer", "Light"] %}
+                                <option value="{{ file_type  }}">{{ file_type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </form>
                     <div style="margin-top:50px">
                         <a href="{{url_for('map_page')}}" class="btn btn-primary btn-lg btn-block">Map</a>

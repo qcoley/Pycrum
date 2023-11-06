@@ -164,6 +164,7 @@ def root():
 def upload():
     shapefile = ""
     files = request.files.getlist('file[]')
+    file_type = request.form.get("file_type")
 
     if len(files) >= 7:
         for file in files:
@@ -174,9 +175,17 @@ def upload():
 
         if shapefile != "":
             gdf = gpd.read_file("uploads/" + shapefile)
-            gdf_subset = gdf.loc[:9, ["Customer_N", "Service_Ad", "Account_Nu", "Premise_Nu"]]
-            table = gdf_subset.to_html(classes="table table-striped")
-            return render_template('upload_page.html', data=table)
+            try:
+                if file_type == "Customer":
+                    gdf_subset = gdf.loc[:9, ["Customer_N", "Service_Ad", "Account_Nu", "Premise_Nu"]]
+                    table = gdf_subset.to_html(classes="table table-striped")
+                    return render_template('upload_page.html', data=[table, "customer"])
+                if file_type == "Light":
+                    gdf_subset = gdf.loc[:9, ["Status", "Title", "PTAG", "LR_NUMBER"]]
+                    table = gdf_subset.to_html(classes="table table-striped")
+                    return render_template('upload_page.html', data=[table, "light"])
+            except KeyError:
+                return redirect(url_for('root'))
 
         # there was not a shape file in the uploaded files
         else:
@@ -201,46 +210,83 @@ def upload_page():
     # if there is a shapefile
     if shapefile != "":
         gdf = gpd.read_file(shapefile)
+        file_type = request.form.get("file_type")
 
-        # default values
-        location = 0
-        name = ""
-        address = ""
-        account = 0
-        premise = 0
-        num_acc = 0
-        num_ina = 0
-        area = ""
-        job_set = ""
+        if file_type == "customer":
+            # default values
+            location = 0
+            name = ""
+            address = ""
+            account = 0
+            premise = 0
+            num_acc = 0
+            num_ina = 0
+            area = ""
+            job_set = ""
 
-        # replace default values with values from shape file if they exist
-        for index, row in gdf.iterrows():
-            if row["geometry"]:
-                location = row["geometry"]
-            if row["Customer_N"]:
-                name = row["Customer_N"]
-            if row["Service_Ad"]:
-                address = row["Service_Ad"]
-            if row["Account_Nu"]:
-                account = row["Account_Nu"]
-            if row["Premise_Nu"]:
-                premise = row["Premise_Nu"]
-            if row["Number_Act"]:
-                num_acc = row["Number_Act"]
-            if row["Number_Ina"]:
-                num_ina = row["Number_Ina"]
-            if row["AREA"]:
-                area = row["AREA"]
-            if row["JOBSET"]:
-                job_set = row["JOBSET"]
+            # replace default values with values from shape file if they exist
+            for index, row in gdf.iterrows():
+                if row["geometry"]:
+                    location = row["geometry"]
+                if row["Customer_N"]:
+                    name = row["Customer_N"]
+                if row["Service_Ad"]:
+                    address = row["Service_Ad"]
+                if row["Account_Nu"]:
+                    account = row["Account_Nu"]
+                if row["Premise_Nu"]:
+                    premise = row["Premise_Nu"]
+                if row["Number_Act"]:
+                    num_acc = row["Number_Act"]
+                if row["Number_Ina"]:
+                    num_ina = row["Number_Ina"]
+                if row["AREA"]:
+                    area = row["AREA"]
+                if row["JOBSET"]:
+                    job_set = row["JOBSET"]
 
-            # create the new record entry and save it to database
-            new_record = Customer(geolocation='POINT(' + str(location.x) + ' ' + str(location.y) + ')', name=name,
-                                  address=address, account_number=account, premise_number=premise,
-                                  number_accounted=num_acc, number_off=num_ina, area=area, job_set=job_set)
+                new_record = Customer(geolocation='POINT(' + str(location.x) + ' ' + str(location.y) + ')', name=name,
+                                      address=address, account_number=account, premise_number=premise,
+                                      number_accounted=num_acc, number_off=num_ina, area=area,
+                                      job_set=job_set)
 
-            db.session.add(new_record)
-            db.session.commit()
+                db.session.add(new_record)
+                db.session.commit()
+
+        if file_type == "light":
+            # default values
+            location = 0
+            title = ""
+            address = ""
+            ptag = 0
+            lr_number = 0
+            area = ""
+            job_set = ""
+            status = ""
+
+            # replace default values with values from shape file if they exist
+            for index, row in gdf.iterrows():
+                if row["geometry"]:
+                    location = row["geometry"]
+                if row["Customer_N"]:
+                    title = row["Title"]
+                if row["Service_Ad"]:
+                    ptag = row["PTAG"]
+                if row["Account_Nu"]:
+                    lr_number = row["LR_NUMBER"]
+                if row["AREA"]:
+                    area = row["AREA"]
+                if row["JOBSET"]:
+                    job_set = row["JOBSET"]
+                if row["Status"]:
+                    status = row["Status"]
+
+                new_record = Light(geolocation='POINT(' + str(location.x) + ' ' + str(location.y) + ')',
+                                   customer_id=1, title=title, address=address, ptag=ptag,
+                                   lr_number=lr_number, area=area, job_set=job_set, status=status, )
+
+                db.session.add(new_record)
+                db.session.commit()
 
         # remove files once complete
         for remove_file in os.listdir(os.path.join(app.config["UPLOAD_FOLDER"])):
@@ -726,7 +772,6 @@ def show_customer():
         return render_template('record_page.html', data=data)
 
 
-'''
 if __name__ == "__main__":
     app.run()
-'''
+

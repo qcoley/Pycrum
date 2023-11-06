@@ -18,7 +18,7 @@
             <h5> Preview Shape File Contents </h5>
         </div>
         <div class="container">
-            {{ data|safe }}
+            {{ data[0]|safe }}
         </div>
         <div class="row justify-content-center" style="margin-top:25px; margin-bottom:25px">
             <form class="form-inline" method=GET action={{url_for('root')}} style="margin-right:25px">
@@ -26,6 +26,7 @@
             </form>
             <form class="form-inline" method=POST action={{url_for('upload_page')}}>
                 <button class="btn btn-success btn-block" type="submit">Save to database</button>
+                <input type="hidden" name="file_type" value="{{ data[1] }}">
             </form>
         </div>
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
